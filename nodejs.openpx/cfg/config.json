@@ -1,0 +1,50 @@
+{
+    "general": {
+        "package" : "plain",
+        "cipher": "hex"
+    },
+	"nodeone": {
+        "bin":  "nodejs",
+        "host": "127.0.0.1", 
+        "port": 8124,
+		"proxy": {
+			"host": "127.0.0.1",
+			"port": 81
+		}
+	},
+	"nodetwo": {
+        "bin": "nodejs",
+        "host": "127.0.0.1",
+		"port": 4430,
+        "path": "opdevelop.php",
+        "mask": {
+            "host": "directorio.uci.cu",
+            "port": 80
+        },
+        "valid": {
+            "user-agent": "User-Agent: Mozilla\/5.0 \\(Windows NT 6.3; WOW64; rv:33.0\\) Gecko\/20100102 Firefox\/33.0",
+            "head": "POST (.)+\/opdevelop.php HTTP\/1.1"
+        },
+        "headers":{
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "User-Agent": "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:33.0) Gecko/20100102 Firefox/33.0",
+            "Connection": "keep-alive"
+        }
+	},
+    "admin":   {
+        "host": "127.0.0.1",
+        "port": 30000
+    },
+    "cntlm":   {
+        "bin": "cntlm",
+        "host": "127.0.0.1",
+        "port": 3129,
+        "proxy": {
+            "host": "10.0.0.1",
+            "port": 8080,
+            "user": "firomero",
+            "pass": "asusCUBA2100",
+            "domain": "uci.cu"
+        }
+    }
+}

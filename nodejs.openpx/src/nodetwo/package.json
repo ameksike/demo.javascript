@@ -1,0 +1,6 @@
+{
+  "name": "nodetwo",
+  "dependencies": {
+    "nodetwo-models":"file:../../lib/"
+  }
+}
