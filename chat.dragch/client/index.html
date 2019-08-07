@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!-- 
+/**
+ *
+ * @package: chat
+ * @subpackage: client
+ * @version: 0.1
+ * @description: Dragch client for a chat service
+ * @authors: ing. Antonio Membrides Espinosa
+ * @making-Date: 01/03/2015
+ * @update-Date: 03/03/2015
+ * @license: GPL v3
+ *
+ */  
+-->
+<html>
+<head>
+	<title>DragCh</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/dragch-theme.css">
+	
+
+	<script type="text/javascript" src="js/base64.js"></script>
+	<script type="text/javascript" src="cfg/config.js"></script>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/WckClient.js"></script>
+	<script type="text/javascript" src="js/dragch.js"></script>
+</head>
+<body>
+	
+</br>
+
+<div class="container">
+	<div class="row">
+		<div class="span6">
+			<div class="container">
+			    <div class="row">
+			        <div class="col-md-5">
+			            <div class="panel panel-primary">
+			                <div class="panel-heading">
+			                    <span class="glyphicon glyphicon-comment"></span> DragCh v0.1
+			                    
+			                    <input style="width:100px" id="name"      type="text" class="nick" name="name"  placeholder="Your Name" maxlength="10"   />
+			                    <span class="glyphicon glyphicon-user"> </span>
+									
+			                     
+			                    
+			                </div>
+			                <div class="panel-body">
+			                    <ul id="message_box" class="chat">
+			                       
+			                    </ul>
+			                </div>
+			                <div class="panel-footer">
+			                    <div class="input-group">
+								<input style="width:99%" id="btn-input" type="text" class="form-control input-sm" placeholder="Type your message here..." />
+			                        <span class="input-group-btn">
+			                            <button class="btn btn-warning btn-sm" id="btn-chat">	 Send</button>
+			                            <button class="btn btn-warning btn-sm" id="btn-clear">	 Clear</button>
+			                       </span>
+			                    </div>
+			                </div>
+			            </div>
+			        </div>
+			    </div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!--button class="btn btn-warning btn-sm" id="test">	 test</button-->
+</body>
+</html>
