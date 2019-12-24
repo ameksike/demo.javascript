@@ -1,0 +1,47 @@
+<!--
+ * @author: Antonio Membrides Espinosa
+ * @mail: tonykssa@gmail.com
+ * @made: 22/12/2019
+ * @update: 23/12/2019
+ * @description: This is a simple game view
+ * @require: ionic/angular 4.11.7
+-->
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      To Guess Lucky Number
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <div class="ion-padding">
+     
+      <ion-card>
+          <ion-card-header>
+              <img src="/assets/front.png">
+            </ion-card-header>
+            <ion-card-content>
+                <div *ngIf="com!=''">
+                    <ion-input type="number" min="1" max="100" [(ngModel)]="num" placeholder="Introduce un número del 1 al 100"></ion-input>
+                    <p>El número secreto es {{ com }} <b>{{ val }}</b></p>
+                    <p>El número de intentos es <b>{{ count }}</b></p>
+                </div>
+            </ion-card-content>
+      </ion-card>
+
+      <ion-card *ngIf="com==''">
+        <ion-card-header>
+         <h3>¡FELICIDADES!</h3> 
+        </ion-card-header>
+        <ion-card-content>
+            Has acertado, el número secreto es el {{ num }}, <br>
+            Su número de intentos fue de {{ count }}, <br>
+            El mejor resultado hasta el momento es de <b>{{ best }}</b> intentos
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button *ngIf="com!=''" expand="block" (click)="checkNumber()">Adivinar</ion-button>  
+      <ion-button *ngIf="com==''" expand="block" (click)="reboot()">Volver a Jugar</ion-button>   
+    </div>
+</ion-content>
