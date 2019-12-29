@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>option</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <app-list-menu from="./assets/data/menu"></app-list-menu>
+
+</ion-content>
+
+<ion-footer>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/home"> </ion-back-button>            
+        </ion-buttons>
+
+        <ion-buttons slot="end">
+            <ion-button routerLink="/home" routerDirection="back">            
+              <ion-icon slot="start" color="medium" name="home"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-buttons slot="end">
+            <ion-button routerLink="/list" routerDirection="back">
+              <ion-icon slot="start" color="medium" name="list"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-buttons slot="end">
+            <ion-button routerLink="/option" routerDirection="back">
+              <ion-icon slot="start" color="medium" name="apps"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-buttons slot="end">
+            <ion-button routerLink="/help" routerDirection="back">        
+              <ion-icon slot="start" color="medium" name="help-circle"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-footer>
+

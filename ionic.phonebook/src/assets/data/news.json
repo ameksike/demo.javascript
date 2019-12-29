@@ -1,0 +1,21 @@
+[
+    { 
+        "type": "card-single",
+        "title": "Card Title", 
+        "subtitle": "Card Subtitle", 
+        "front": "./assets/news/madison.jpg",
+        "content": "Keep close to Nature's heart... and break clear away, once in awhile, and climb a mountain or spend a week in the woods. Wash your spirit clean. " 
+    },{ 
+        "type": "card-short",
+        "title": "Card Title", 
+        "subtitle": "Card Subtitle", 
+        "front": "./assets/news/2.jpg",
+        "content": "Keep close to Nature's heart... " 
+    },{ 
+        "type": "card-single",
+        "title": "Card Title", 
+        "subtitle": "Card Subtitle", 
+        "front": "./assets/news/madison.jpg",
+        "content": "This is content, without any paragraph or header tags, within an ion-card-content element. " 
+    }
+]

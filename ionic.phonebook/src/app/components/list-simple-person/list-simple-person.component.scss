@@ -1,0 +1,59 @@
+/*
+article {
+    display: flex;
+    border-bottom: 1px solid #0cd1e8;
+    padding: 10px;
+    font-size: 0.9em;
+}
+  
+span {
+    display: inline-block;
+    width: 22%;
+    margin-right: 2%;
+}
+*/
+
+.btnOpc:hover {
+  cursor: pointer;
+}
+
+#list ion-row{
+  border-bottom: 1px solid #0cd1e8;
+}
+.ts ion-col{
+  //margin: 1px;
+  padding: 5  px;
+  background: #444;
+}
+
+
+/* ----------------------------------------------  */
+@media (min-width: 0) and (max-width: 576px) {
+  .hide-only-xs {
+    display: none;
+  }
+}
+
+@media (min-width: 576px) and (max-width: 768px) {
+  .hide-only-sm {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 992px) {
+  .hide-only-md {
+    display: none;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1200px) {
+  .hide-only-lg {
+    display: none;
+  }
+}
+
+@media (min-width: 1200px) {
+  .hide-only-xl {
+    display: none;
+  }
+}

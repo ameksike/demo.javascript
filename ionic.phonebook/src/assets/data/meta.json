@@ -1,0 +1,13 @@
+{
+    "name":"Phonebook Project",
+    "version": "1.0",
+    "data": "store.db",
+    "date": "24/10/2019",
+    "authors":[
+        { "name":"Antono Membrides Espinsa", "email": "tonykssa@gmail.com" },
+        { "name":"Yanet Borges Lescano", "email": "tonykssa@gmail.com" },
+        { "name":"Nathali Membrides Borges", "email": "tonykssa@gmail.com" },
+        { "name":"Marco Membrides Poso", "email": "tonykssa@gmail.com" },
+        { "name":"Kevin Membrides Borges", "email": "tonykssa@gmail.com" }
+    ]
+}

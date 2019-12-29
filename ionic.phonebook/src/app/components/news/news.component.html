@@ -1,0 +1,24 @@
+
+
+  <ion-card *ngFor="let item of options">
+    <img src="{{item.front}}">
+
+    <ion-card-header *ngIf="item.type==='card-single'">
+      <ion-card-subtitle>{{item.subtitle}}</ion-card-subtitle>
+      <ion-card-title>{{item.title}}</ion-card-title>
+    </ion-card-header>  
+    
+    <ion-item *ngIf="item.type==='card-short'">
+        <ion-icon name="pin" slot="start"></ion-icon>
+        <ion-label>{{item.title}}</ion-label>
+        <ion-button fill="outline" slot="end">View</ion-button>
+    </ion-item>
+
+    <ion-card-content> {{item.content}} </ion-card-content>
+  </ion-card>
+
+
+  <ion-card>
+      <app-list-menu from="./assets/data/menu"></app-list-menu>
+  </ion-card>
+  

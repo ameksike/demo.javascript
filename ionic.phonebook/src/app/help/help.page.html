@@ -1,0 +1,61 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Help information</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content> <div class="ion-padding">
+
+      <ion-grid >
+          <ion-row> <h2> {{meta.name}} </h2>  </ion-row>
+          <ion-row>{{meta.date}} </ion-row>
+          <ion-row *ngFor="let item of meta.authors; index as i">
+            <ion-col size="1">{{ i+1 }}</ion-col>
+            <ion-col size="3"> {{ item.name }}</ion-col>
+            <ion-col size="3"><ion-badge color="secondary">{{ item.email }}</ion-badge> </ion-col>
+          </ion-row>
+      </ion-grid>
+      <p>--------------------------------------------------------</p>
+      <p>--------------------------------------------------------</p>
+      <ion-grid >
+          <ion-row *ngFor="let item of [msgs]; index as i">
+            <ion-col size="5"> {{ item.date }}</ion-col>
+            <ion-col size="5"><ion-badge color="secondary">{{ item.msg }}</ion-badge> </ion-col>
+          </ion-row>
+      </ion-grid>
+      <p>--------------------------------------------------------</p>
+      <ion-input type="text" [(ngModel)]="msg" placeholder="Enter a message you want send us..."></ion-input>
+      <ion-button size="small" (click)="setData()">Send</ion-button>
+      <ion-button size="small" (click)="setClear()">Clear</ion-button>
+
+</div> </ion-content>
+
+
+<ion-footer>
+  <ion-toolbar>
+      <ion-buttons slot="start">
+          <ion-back-button defaultHref="/home"> </ion-back-button>            
+      </ion-buttons>
+
+      <ion-buttons slot="end">
+          <ion-button routerLink="/home" routerDirection="back">            
+            <ion-icon slot="start" color="medium" name="home"></ion-icon>
+          </ion-button>
+      </ion-buttons>
+      <ion-buttons slot="end">
+          <ion-button routerLink="/list" routerDirection="back">
+            <ion-icon slot="start" color="medium" name="list"></ion-icon>
+          </ion-button>
+      </ion-buttons>
+      <ion-buttons slot="end">
+          <ion-button routerLink="/option" routerDirection="back">
+            <ion-icon slot="start" color="medium" name="apps"></ion-icon>
+          </ion-button>
+      </ion-buttons>
+      <ion-buttons slot="end">
+          <ion-button routerLink="/help" routerDirection="back">        
+            <ion-icon slot="start" color="medium" name="help-circle"></ion-icon>
+          </ion-button>
+      </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

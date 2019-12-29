@@ -1,0 +1,6 @@
+[
+    {  "title": "home",  "color":"#e63135",  "icon":"bookmarks",  "route": "/home"},
+    {  "title": "news",  "color":"#0ca9ea",  "icon":"planet",   "route": "/home" },
+    {  "title": "phonbook",  "color":"#f46524",  "icon":"bookmarks",  "route": "/list"},
+    {  "title": "help",  "color":"#0ca944",  "icon":"help-circle",   "route": "/help"}      
+]

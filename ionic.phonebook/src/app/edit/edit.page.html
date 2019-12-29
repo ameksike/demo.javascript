@@ -1,0 +1,70 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Person Edit {{id}} </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+    <div class="ion-padding">
+      
+      <ion-list>
+          <ion-item>
+            <ion-label><b>Name:</b></ion-label>
+            <ion-input  [value]="person.name" (input)="setName($event.target.value)"></ion-input>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label><b>Age:</b></ion-label>
+            <ion-input [value]="person.age" (input)="setAge($event.target.value)">  </ion-input>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label><b>Phone:</b></ion-label>
+            <ion-input [value]="person.phone" (input)="setPhone($event.target.value)"> </ion-input>
+          </ion-item>
+
+          <ion-item>
+              <ion-label><b>Married:</b></ion-label>
+              <ion-checkbox slot="end"></ion-checkbox>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Toggle</ion-label>
+            <ion-toggle slot="end"></ion-toggle>
+          </ion-item>
+          <ion-item>
+            <ion-label>Radio</ion-label>
+            <ion-radio slot="end"></ion-radio>
+          </ion-item>
+        </ion-list>
+    </div>
+</ion-content>
+
+<ion-footer>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-back-button defaultHref="/list">  </ion-back-button>            
+        </ion-buttons>
+        <ion-buttons slot="start">
+            <ion-button (click)="save()" routerDirection="forward">
+              <ion-icon slot="start" color="medium" name="done-all"></ion-icon>
+            </ion-button>          
+        </ion-buttons>
+
+        <ion-buttons slot="end">
+            <ion-button routerLink="/home" routerDirection="back">            
+              <ion-icon slot="start" color="medium" name="home"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-buttons slot="end">
+            <ion-button routerLink="/list" routerDirection="back">
+              <ion-icon slot="start" color="medium" name="list"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+        <ion-buttons slot="end">
+            <ion-button routerLink="/help" routerDirection="back">        
+              <ion-icon slot="start" color="medium" name="help-circle"></ion-icon>
+            </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+</ion-footer>

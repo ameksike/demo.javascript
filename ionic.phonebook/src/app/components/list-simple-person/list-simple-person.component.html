@@ -1,0 +1,60 @@
+<ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content
+      pullingIcon="arrow-dropdown"
+      pullingText="Pull to refresh"
+      refreshingSpinner="circles"
+      refreshingText="Refreshing...">
+    </ion-refresher-content>
+</ion-refresher>
+  
+<ion-grid id="list">
+    <ion-row >
+        <ion-col size-sm="0" size-md="1" class="hide-only-xs hide-only-sm"><b>Id</b></ion-col>
+        <ion-col size-sm="4" size-md="1"><b>Avatar</b></ion-col>
+        <ion-col size-sm="4" size-md="2"><b>Name</b></ion-col>
+        <ion-col size-sm="0" size-md="1" class="hide-only-xs hide-only-sm"><b>Age</b></ion-col>
+        <ion-col size-sm="0" size-md="1" class="hide-only-xs hide-only-sm"><b>Sex</b></ion-col>
+        <ion-col size-sm="0" size-md="3" class="hide-only-xs hide-only-sm"><b>Address</b></ion-col>
+        <ion-col size-sm="4" size-md="1"><b>Phone</b></ion-col>
+        <ion-col ><b>Options</b> </ion-col>
+    </ion-row>
+
+    <ion-row *ngFor="let person of data">
+      <ion-col size-sm="0" size-md="1" class="ion-align-self-center hide-only-xs hide-only-sm"> <span><ion-badge> {{person.id}} </ion-badge> </span> </ion-col>
+      <ion-col size-sm="4" size-md="1" class="ion-align-self-center"> <img src="{{person.icon}}">  </ion-col>
+      <ion-col size-sm="4" size-md="2" class="ion-align-self-center"> {{person.firstname}}  </ion-col>
+      <ion-col size-sm="0" size-md="1" class="ion-align-self-center hide-only-xs hide-only-sm"> {{person.age}} </ion-col>
+      <ion-col size-sm="0" size-md="1" class="ion-align-self-center hide-only-xs hide-only-sm"> {{person.sex}} </ion-col>
+      <ion-col size-sm="0" size-md="3" class="ion-align-self-center hide-only-xs hide-only-sm">{{person.address}}</ion-col>
+      <ion-col size-sm="4" size-md="1" class="ion-align-self-center">{{person.phone}}</ion-col>
+      <ion-col class="ion-align-self-center">
+        <div>
+            <span (click)="list(person)" class="btnOpc"> <ion-icon name="clipboard"></ion-icon> </span>
+            <span (click)="edit(person)" class="btnOpc" > <ion-icon name="create"></ion-icon> </span>
+            <span (click)="delete(person)" class="btnOpc"> <ion-icon name="close"></ion-icon> </span>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+  
+
+<!--div>
+    <h3> {{title| uppercase }} </h3>
+    <div *ngIf="! data.length">No hay clientes por el momento</div>
+    <div>
+      <article *ngFor="let person of data">
+          <span><ion-badge> {{person.id}} </ion-badge> </span>
+          <span><ion-avatar slot="start"> <img src="{{person.icon}}"> </ion-avatar></span>
+          <span>{{person.name}}</span>
+          <span>{{person.age}}</span>
+          <span>{{person.sex}}</span>
+          <span>{{person.address}}</span>
+          <span>{{person.phone}}</span>
+          <span>
+                <span (click)="list(person)" class="btnOpc"> <ion-icon name="clipboard"></ion-icon> </span>
+                <span (click)="edit(person)" class="btnOpc" > <ion-icon name="create"></ion-icon> </span>
+                <span (click)="delete(person)" class="btnOpc"> <ion-icon name="close"></ion-icon> </span>
+          </span>
+      </article>
+    </div> 
+</div-->
