@@ -19,7 +19,7 @@ export class PersondbService {
     this.path = "./assets/data/";
     this.dbname = "phonebook";
     this.ext = ".db";
-    this.connect();
+    //this.connect();
  }
 
  // public methods
@@ -33,6 +33,10 @@ export class PersondbService {
       this.createTable();  
     })
     .catch(e => console.log(e));
+ }
+
+ getFullPath(){
+    return this.path + this.dbname + this.ext;
  }
 
  setDatabase(db: SQLiteObject){
@@ -58,17 +62,19 @@ export class PersondbService {
    return this.db.executeSql(sql, [obj.id]);
  }
 
- getAll(){
+ async getAll(){
    let sql = 'SELECT * FROM person';
-   return this.db.executeSql(sql, [])
-   .then(response => {
+   try {
+     const response = await this.db.executeSql(sql, []);
      let tasks = [];
      for (let index = 0; index < response.rows.length; index++) {
-       tasks.push( response.rows.item(index) );
+       tasks.push(response.rows.item(index));
      }
-     return Promise.resolve( tasks );
-   })
-   .catch(error => Promise.reject(error));
+     return Promise.resolve(tasks);
+   }
+   catch (error) {
+     return await Promise.reject(error);
+   }
  }
 
  update(obj: any){

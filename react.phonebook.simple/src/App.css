@@ -1,0 +1,99 @@
+/*  #text-align: center;*/
+
+.App {
+  margin: auto;
+  width: 70%;
+}
+
+.App-logo {
+  height: 10vmin;
+  pointer-events: none;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 10vh;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 1vmin);
+  color: white;
+  
+  margin-bottom: 8px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+
+.frmMain{
+  width: 94%;
+  background-color:#dfe6e9;
+  border-radius: 5px;
+  padding: 20px;
+}
+
+.frmField{
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: block;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.btnMain{
+  width: 100%;
+  background-color: #00b894;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.list{
+  width: 100%;
+  background-color:#dfe6e9;
+  border-radius: 5px;
+}
+
+.list ul{
+  width: 90%;
+}
+
+.listMain{
+  list-style: none;
+  border-radius: 8px;
+}
+
+.listMain:hover{
+  background-color:#282c34;
+  color: aliceblue;
+}
+
+.listBtn{
+  display: inline-block;
+  height: auto;
+  width: auto;
+  border-radius: 8px;
+  margin: 3px 5px;
+  border: 1px solid #00b894;
+  cursor: pointer;
+}

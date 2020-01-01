@@ -39,7 +39,7 @@ export class ListPage implements OnInit {
 
     //console.log(this.srvDataJson.fileLoad("./assets/data/menu.json"));
 
-    dta =  this.srvDataDb.getAll();
+    dta =  this.srvDataDb.getFullPath();
     console.log(dta);
     /*
     this.srvDataJson.fileLoad2("./assets/data/menu.json", (data: void) => {
