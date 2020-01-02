@@ -1,0 +1,12 @@
+[ 
+    { "id": 11, " firstname":  "Dr Nice ",    "age": 12, "sex":"M", "phone": "85668899", "address":"Lincon Street", "icon":"./assets/person/img2-small.jpg" },
+    { "id": 12, " firstname":  "Narco ",      "age": 22, "sex":"M", "phone": "35678889", "address":"Lincon Street", "icon":"./assets/person/img4-small.jpg" },
+    { "id": 13, " firstname":  "Bombasto ",   "age": 14, "sex":"M", "phone": "52668989", "address":"Lincon Street", "icon":"./assets/person/img2-small.jpg" },
+    { "id": 14, " firstname":  "Celeritas ",  "age": 47, "sex":"F", "phone": "55667899", "address":"Lincon Street", "icon":"./assets/person/img3-small.jpg" },
+    { "id": 15, " firstname":  "Magneta ",    "age": 78, "sex":"F", "phone": "55148899", "address":"Lincon Street", "icon":"./assets/person/img5-small.jpg" },
+    { "id": 16, " firstname":  "RubberMan ",  "age": 13, "sex":"M", "phone": "55668899", "address":"Lincon Street", "icon":"./assets/person/img2-small.jpg" },
+    { "id": 17, " firstname":  "Dynama ",     "age": 25, "sex":"F", "phone": "57668899", "address":"Lincon Street", "icon":"./assets/person/img3-small.jpg" },
+    { "id": 18, " firstname":  "Dr IQ ",      "age": 58, "sex":"M", "phone": "96681899", "address":"Lincon Street", "icon":"./assets/person/img4-small.jpg" },
+    { "id": 19, " firstname":  "Magma ",      "age": 47, "sex":"F", "phone": "55668899", "address":"Lincon Street", "icon":"./assets/person/img1-small.jpg" },
+    { "id": 20, " firstname":  "Tornado ",    "age": 68, "sex":"M", "phone": "75668899", "address":"Lincon Street", "icon":"./assets/person/img2-small.jpg" }
+]
