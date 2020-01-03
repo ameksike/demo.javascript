@@ -1,22 +1,26 @@
 #Simple NodeJs Express API REST
 
 # develop steps
-npm init
-npm install express --save
-npm install sqlite3 --save
+- npm init
+- npm install express --save
+- npm install sqlite3 --save
 
 # run steps
-npm run start 
+- npm run start 
 
 # used steps
+
 #................................................ SELECT ALL
 Request:
 	GET http://localhost:8000/phonebook/
+	
 Response:
+
 	{
 		"message": "success",
 		"data": [ {}, ..., {} ]
 	}
+
 #................................................ SELECT
 Request:
 	GET http://localhost:8000/phonebook/4
@@ -36,6 +40,7 @@ Response:
 			"user": "magma.mangrino"
 		}
 	}
+
 #................................................ DELETE
 Request:
 	DELETE http://localhost:8000/phonebook/33
@@ -45,6 +50,7 @@ Response:
 		"message": "deleted",
 		"rows": 1
 	}
+
 #................................................ UPDATE
 Request:
 	PATCH/PUT http://localhost:8000/phonebook/4
@@ -73,6 +79,7 @@ Response:
 			"pass": "37a6259cc0c1dae299a7866489dff0bd"
 		}
 	}
+
 #................................................ INSERT 
 Request:
 	POST http://localhost:8000/phonebook
