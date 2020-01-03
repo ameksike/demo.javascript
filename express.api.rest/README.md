@@ -11,6 +11,7 @@
 # used steps
 
 #................................................ SELECT ALL
+
 Request:
 	GET http://localhost:8000/phonebook/
 	
@@ -22,10 +23,12 @@ Response:
 	}
 
 #................................................ SELECT
+
 Request:
 	GET http://localhost:8000/phonebook/4
 	
 Response:
+
 	{
 		"message": "success",
 		"data": {
@@ -42,17 +45,21 @@ Response:
 	}
 
 #................................................ DELETE
+
 Request:
 	DELETE http://localhost:8000/phonebook/33
 	
 Response:
+
 	{
 		"message": "deleted",
 		"rows": 1
 	}
 
 #................................................ UPDATE
+
 Request:
+
 	PATCH/PUT http://localhost:8000/phonebook/4
 	{
 		"firstname":"Magma",
@@ -64,7 +71,9 @@ Request:
 		"pass":"null",
 		"user":"magma.perez"
 	}
+
 Response:
+
 	{
 		"message": "success",
 		"data": {
@@ -81,7 +90,9 @@ Response:
 	}
 
 #................................................ INSERT 
+
 Request:
+
 	POST http://localhost:8000/phonebook
 	{
 	  "firstname":"Magma",
@@ -95,6 +106,7 @@ Request:
 	}
 
 Response:
+
 	{
 		"message":"success",
 		"data":{
