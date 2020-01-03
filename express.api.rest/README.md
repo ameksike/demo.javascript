@@ -4,6 +4,7 @@
 - npm init
 - npm install express --save
 - npm install sqlite3 --save
+- npm install cors
 
 # run steps
 - npm run start 
