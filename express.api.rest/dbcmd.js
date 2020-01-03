@@ -10,5 +10,5 @@ module.exports.dbcmd = {
 
 module.exports.dbdata = [
 //	["firstname", "lastname", "age", "sex", "address", "phone", "avatar"],
-	["Misto", "Pelusa", "55", "M", "Lincon Street", "85858584", "avatar"]
+//	["Misto", "Pelusa", "55", "M", "Lincon Street", "85858584", "avatar"]
 ]

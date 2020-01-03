@@ -62,8 +62,10 @@ app.get("/", (req, res, next) => {
     res.json({"message":"REST API for PhoneBook it is Ok."});
 });
 
+/*
 app.use(function(req, res){ 
     console.log("... on 404 (Default response for any other request) ...");
+    console.log(req.headers);
     res.status(404); 
-});
+});*/
 
