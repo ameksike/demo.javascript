@@ -16,8 +16,11 @@ This repository contains a list of demonstration applications. The demo applicat
 
 ### Similar projects 
 + [CEP.Candidate: Simple project with one used: Angular, ASP.NET Core, SQL Server, etc](https://github.com/ameksike/cep.onetree.candidate)
-+ [CEP.Gateway: Simple project with one used Express, MongoDB. ](https://github.com/ameksike/cep.muslan.gateway)
++ [CEP.Gateway: Simple project with one used Angular, Express, MongoDB. ](https://github.com/ameksike/cep.muslan.gateway)
 + [webcp.bycod: Simple corporate portal based on Bycod framework from Ksike technologies,](https://github.com/ameksike/webcp.bycod)
 + [webcp.simple: Simple corporate portal, includes the development of an intranet](https://github.com/ameksike/webcp.simple)
 + [KOOP: Ksike Object Oriented Prograning (KOOP)](https://github.com/ameksike/ksike.rhino.oop)
 + [Secretary: Lightweight library for data access abstraction, your Rhino distro](https://github.com/ameksike/ksike.rhino.secretary)
++ [Framework: Ksike Framework Rhino series, consists of a specialized framework for the JavaScript programming language on NodeJs ](https://github.com/ameksike/ksike.rhino.framework)
++ [Raikg: Server written on Nodejs in the style of Nginx and Apache servers](https://github.com/ameksike/ksike.rhino.raikg)
++ [Kui: Micro framework oriented to the construction of graphical user interfaces based on HTML and JavaScript](https://github.com/ameksike/ksike.rhino.ui)
