@@ -1,6 +1,7 @@
 import SCounter from "../services/Counter";
 
 export default function CounterAct({ inc = 1, stl="blue" }) {
+    
     const { update } = SCounter();
 
     return (
