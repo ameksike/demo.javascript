@@ -15,6 +15,7 @@ This repository contains a list of demonstration applications. The demo applicat
 + [Prestashop: Contains source code related to developments focused on PrestaShop ](https://github.com/ameksike/demo.prestashop)
 
 ### Similar projects 
+- [Tropipay Terminal](https://github.com/tropipay/tropipay-terminal)
 + [CEP.Candidate: Simple project with one used: Angular, ASP.NET Core, SQL Server, etc](https://github.com/ameksike/cep.onetree.candidate)
 + [CEP.Gateway: Simple project with one used Angular, Express, MongoDB. ](https://github.com/ameksike/cep.muslan.gateway)
 + [webcp.bycod: Simple corporate portal based on Bycod framework from Ksike technologies,](https://github.com/ameksike/webcp.bycod)
