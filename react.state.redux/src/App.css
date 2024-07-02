@@ -40,3 +40,85 @@
 .read-the-docs {
   color: #888;
 }
+
+
+/* RED */
+.stl-red {
+  margin: 5px 1px 5px 1px;
+}
+
+.stl-red button {
+  background-color: rgb(245, 115, 115);
+}
+
+.stl-red span {
+  background-color: rgb(245 115 115 / 48%);
+  padding: 1px 20px 2px 20px;
+}
+
+/* BLUE */
+.stl-blue {
+  margin: 5px 1px 5px 1px;
+}
+
+.stl-blue button {
+  background-color: rgb(115, 171, 245);
+}
+
+.stl-blue span {
+  background-color: rgb(115, 171, 245, 48%);
+  padding: 1px 20px 2px 20px;
+}
+
+/* --------------------- */
+.box {
+  display: flex;
+}
+
+.box-horizontal {
+  display: flex;
+  flex-direction: row;
+}
+
+.box-vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+.box-fit {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.box-align-center {
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+}
+
+.box-align-between {
+  justify-content: space-between;
+}
+
+.box-align-right {
+  justify-content: right;
+}
+
+.box-align-left {
+  justify-content: left;
+}
+
+.box-align-bottom {
+  justify-content: flex-end;
+}
+
+.box-align-top,
+.MuiListItem-root.box-align-top {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.box-shadow {
+  -webkit-box-shadow: 7px 4px 9px #d3d2e1;
+  box-shadow: 7px 4px 9px #d3d2e1;
+}
