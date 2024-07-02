@@ -1,4 +1,4 @@
-import SCounter from "../services/CounterContext";
+import SCounter from "../services/Counter";
 
 export default function CounterAct({ inc = 1, stl = "blue" }) {
 
