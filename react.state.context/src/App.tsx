@@ -11,7 +11,7 @@ function App() {
   return (
     <CounterProvider>
 
-      <IconHeader />
+      <IconHeader title="Vite + React + API Context" />
 
       <div className="card">
         <div className='box box-align-between'>
