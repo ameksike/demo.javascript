@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import counterReducer from './CounterSlice';
+import counterReducer, { CounterState } from './CounterSlice';
 
 export const CounterStore = configureStore({
   reducer: {
@@ -9,3 +9,4 @@ export const CounterStore = configureStore({
 
 export type RootState = ReturnType<typeof CounterStore.getState>;
 export type AppDispatch = typeof CounterStore.dispatch;
+export type { CounterState };
