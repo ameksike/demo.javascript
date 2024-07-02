@@ -24,3 +24,9 @@ This repository contains a list of demonstration applications. The demo applicat
 + [Framework: Ksike Rhino series, focused on JavaScript programming language and NodeJs ](https://github.com/ameksike/ksike.rhino.framework)
 + [Raikg: Server written on Nodejs in the style of Nginx and Apache servers](https://github.com/ameksike/ksike.rhino.raikg)
 + [Kui: Micro framework oriented to the construction of graphical user interfaces based on HTML and JavaScript](https://github.com/ameksike/ksike.rhino.ui)
+
+### Steps 
+- npm init vite@latest
+- cd react.state.context
+- npm install
+- npm run dev
