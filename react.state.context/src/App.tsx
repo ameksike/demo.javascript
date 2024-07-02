@@ -5,6 +5,10 @@ import CounterAct from './components/CounterAct'
 import { CounterProvider } from './services/CounterContext'
 import { IconHeader } from './components/IconHeader'
 import UsrList from './components/UsrList'
+import UsrListQuery from './components/UsrListQuery'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+const queryClient = new QueryClient()
 
 function App() {
 
@@ -26,6 +30,10 @@ function App() {
 
         <UsrList />
       </div>
+
+      <QueryClientProvider client={queryClient}>
+        <UsrListQuery />
+      </QueryClientProvider>
 
     </CounterProvider >
   )
