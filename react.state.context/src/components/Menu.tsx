@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 const Home = React.lazy(() => import('./PageHome'));
 const About = React.lazy(() => import('./PageAbout'));
 const User = React.lazy(() => import('./PageUser'));
+import PageCmp from './PageCmp'
 
 export default function Menu() {
   return (
@@ -19,6 +20,9 @@ export default function Menu() {
           <li>
             <Link to="/user">User</Link>
           </li>
+          <li>
+            <Link to="/componets">Componets</Link>
+          </li>
         </ul>
       </nav>
 
@@ -27,6 +31,7 @@ export default function Menu() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/user" element={<User />} />
+          <Route path="/componets" element={<PageCmp />} />
         </Routes>
       </Suspense>
     </Router>
