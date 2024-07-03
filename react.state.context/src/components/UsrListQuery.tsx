@@ -18,7 +18,7 @@ const UsrListQuery: React.FC = () => {
 
     return (
         <div>
-            <h1>User List</h1>
+            <h3>User List Query</h3>
             <ul>
                 {srv.list?.data?.map(user => (
                     <li key={user.id}>
