@@ -1,6 +1,7 @@
 import React from 'react';
 
 const componentMap: { [key: string]: React.LazyExoticComponent<React.FC> | null } = {
+    // static cached
     CounterView: React.lazy(() => import('./CounterView')),
 };
 
