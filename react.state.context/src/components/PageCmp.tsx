@@ -15,6 +15,7 @@ export default function PageCmp() {
     return (
         <div>
             <h3> Dynamic Component Manager </h3>
+
             <div className="box box-align-between">
                 <div className="box box-vertical">
                     <button onClick={() => addComponent('CounterAct')}>Add CounterAct</button>
