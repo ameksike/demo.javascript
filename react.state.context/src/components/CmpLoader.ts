@@ -9,7 +9,6 @@ export const loadComponent = (componentName: string): React.LazyExoticComponent<
     if (!componentMap[componentName]) {
         componentMap[componentName] = React.lazy(() => import('./' + componentName));
     }
-    console.log(componentName, componentMap[componentName]);
     return componentMap[componentName] || null;
 };
 
