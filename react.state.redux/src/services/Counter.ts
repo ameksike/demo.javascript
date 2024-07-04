@@ -1,7 +1,11 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from './CounterStore';
+import { RootState } from './Store';
 import { incrementByAmount, counterKey } from './CounterSlice';
 
+/**
+ * Convert the CounterSlice into a service as custom Hook
+ * @returns {Object}
+ */
 const SCounter = () => {
     const count = useSelector((state: RootState) => state[counterKey].value);
     const dispatch = useDispatch();

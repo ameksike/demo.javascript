@@ -1,15 +1,19 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+// define the state model
 export interface CounterState {
     value: number;
 }
 
+// define the state 
 const initialState: CounterState = {
     value: 0,
 };
 
+// define the service key or name
 export const counterKey = 'counter';
 
+// define service reducers
 const counterSlice = createSlice({
     name: counterKey,
     initialState,
@@ -26,5 +30,8 @@ const counterSlice = createSlice({
     },
 });
 
+// define service actions
 export const { increment, decrement, incrementByAmount } = counterSlice.actions;
+
+// export the reducer manager 
 export default counterSlice.reducer;
