@@ -3,8 +3,8 @@ import './App.css'
 import { IconHeader } from './components/IconHeader'
 import CounterView from './components/CounterView';
 import CounterAct from './components/CounterAct';
+import { StoreProvider } from './components/StoreProvider';
 
-import { StoreProvider } from './services/Store';
 
 function App() {
 

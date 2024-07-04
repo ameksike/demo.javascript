@@ -1,4 +1,4 @@
-import SCounter from "../services/Counter";
+import SCounter from "../services/CounterService";
 
 export default function CounterView({ stl = "red", inc = 1 }) {
 
