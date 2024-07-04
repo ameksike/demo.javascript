@@ -1,15 +1,15 @@
 import './App.css'
-import { IconHeader } from './components/IconHeader'
 
-import { Provider } from 'react-redux';
-import { GlobalStore } from './services/Store';
+import { IconHeader } from './components/IconHeader'
 import CounterView from './components/CounterView';
 import CounterAct from './components/CounterAct';
+
+import { StoreProvider } from './services/Store';
 
 function App() {
 
   return (
-    <Provider store={GlobalStore}>
+    <StoreProvider >
       <IconHeader title="Vite + React + Redux" />
 
       <div className="card">
@@ -24,7 +24,7 @@ function App() {
         </div>
 
       </div>
-    </Provider>
+    </StoreProvider>
   )
 }
 
