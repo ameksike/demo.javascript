@@ -8,8 +8,10 @@ const initialState: CounterState = {
     value: 0,
 };
 
+export const counterKey = 'counter';
+
 const counterSlice = createSlice({
-    name: 'counter',
+    name: counterKey,
     initialState,
     reducers: {
         increment: (state) => {
