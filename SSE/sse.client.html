@@ -1,0 +1,39 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server-Sent Events Example</title>
+</head>
+
+<body>
+  <h3>SSE Demo</h3>
+  <div id="sse-data"></div>
+
+  <script>
+    // Connect to the SSE server
+    const sseSource = new EventSource('/event'); 
+
+    // Listen for events
+    sseSource.addEventListener('message', (event) => {
+      const data = JSON.parse(event.data);
+      write(data);
+    });
+
+    // Handle errors
+    sseSource.onerror = (error) => {
+      console.error('SSE Error:', error);
+      sseSource.close();
+    };
+
+    // Handle UI
+    function write(data) {
+      const sseDataElement = document.getElementById('sse-data');
+      sseDataElement.innerHTML += `<p>${data.message} - ${data.timestamp}</p>`;
+    }
+  </script>
+</body>
+
+</html>
