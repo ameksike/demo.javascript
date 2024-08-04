@@ -15,8 +15,9 @@ This repository contains a list of demonstration applications. The demo applicat
 + [Prestashop: Contains source code related to developments focused on PrestaShop ](https://github.com/ameksike/demo.prestashop)
 
 ### Similar projects 
-+ [React + AWS Cognito](https://github.com/ameksike/demo.aws/tree/main/cognito-react)
-+ [Demo Integration: Demo applications written in JavaScript](https://github.com/ameksike/demo.integration)
++ [Demo: React + AWS Cognito](https://github.com/ameksike/demo.aws/tree/main/cognito-react)
++ [Demo Integration: Demo applications](https://github.com/ameksike/demo.integration)
++ [Demo Events: EDA Demo applications](https://github.com/ameksike/demo.eda)
 + [Tropipay Terminal: Demo TropiPay Point Of Sale (POS)](https://github.com/tropipay/tropipay-terminal)
 + [CEP.Candidate: Simple project with one used: Angular, ASP.NET Core, SQL Server, etc](https://github.com/ameksike/cep.onetree.candidate)
 + [CEP.Gateway: Simple project with one used Angular, Express, MongoDB. ](https://github.com/ameksike/cep.muslan.gateway)
