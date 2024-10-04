@@ -66,4 +66,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - [Getting started](https://nextjs.org/docs/getting-started/installation)
 - [Fullstack Trello Clone: Next.js 14, Server Actions, React, Prisma, Stripe, Tailwind, MySQL](https://www.youtube.com/watch?v=pRybm9lXW2c)
 - [Google fonts](https://fonts.google.com/)
+- [SVG Repo](https://www.svgrepo.com/collections/multicolor/13)
+- [User Management Platform](https://clerk.com/)
 

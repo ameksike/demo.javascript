@@ -8,7 +8,7 @@ export const Logo = () => {
         <Link href="/">
             <div className="hover:opacity-75 transition items-center gap-x-2 hidden md:flex">
                 <Image
-                    src="/images/bird_2.svg"
+                    src="/images/writing.svg"
                     alt="logo"
                     height={50}
                     width={50}
