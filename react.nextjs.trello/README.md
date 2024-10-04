@@ -1,16 +1,32 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## References
-- [Fullstack Trello Clone: Next.js 14, Server Actions, React, Prisma, Stripe, Tailwind, MySQL](https://www.youtube.com/watch?v=pRybm9lXW2c)
+### Libs 
+- [shadcn/ui](https://ui.shadcn.com/docs/cli)
 
-- Libs 
-    - [shadcn/ui](https://ui.shadcn.com/docs/cli)
+### Develop 
+- npx create-next-app@latest
+- npx shadcn@latest init
+- VSCode Plugin: Tailwind CSS IntelliSense
+- npx shadcn@latest add button 
 
-- Install 
-    - npx shadcn@latest init
-    - VSCode Plugin: Tailwind CSS IntelliSense
-    - 
-
+### Key Features:
+- Auth 
+- Organizations / Workspaces
+- Board creation
+- Unsplash API for random beautiful cover images
+- Activity log for entire organization
+- Board rename and delete
+- List creation
+- List rename, delete, drag & drop reorder and copy
+- Card creation
+- Card description, rename, delete, drag & drop reorder and copy
+- Card activity log
+- Board limit for every organization
+- Stripe subscription for each organization to unlock unlimited boards
+- Landing page
+- MySQL DB
+- Prisma ORM
+- shadcnUI & TailwindCSS
 
 ## Getting Started
 
@@ -25,7 +41,6 @@ pnpm dev
 # or
 bun dev
 ```
-
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
@@ -46,3 +61,9 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## References
+- [Getting started](https://nextjs.org/docs/getting-started/installation)
+- [Fullstack Trello Clone: Next.js 14, Server Actions, React, Prisma, Stripe, Tailwind, MySQL](https://www.youtube.com/watch?v=pRybm9lXW2c)
+- [Google fonts](https://fonts.google.com/)
+
