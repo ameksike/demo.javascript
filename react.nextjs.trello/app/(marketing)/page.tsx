@@ -4,8 +4,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { headingFont, textFont } from "../fonts";
 
-
-export default function Home() {
+export default function () {
   return (
     <div className="flex items-center justify-center flex-col">
       <div className={cn(
