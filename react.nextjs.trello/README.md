@@ -35,7 +35,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Clerk & Auth
 [![clerk.dashboard.overview](./rsc/clerk.dashboard.overview.jpg)](https://dashboard.clerk.com/)
-![clerk.dashboard.org](./rsc/clerk.dashboard.org.jpg)
+[![clerk.dashboard.org](./rsc/clerk.dashboard.org.jpg)](https://clerk.com/docs/references/nextjs/custom-signup-signin-pages)
 
 
 ## Getting Started
