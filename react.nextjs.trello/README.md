@@ -33,6 +33,11 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 - Prisma ORM
 - shadcnUI & TailwindCSS
 
+## Clerk & Auth
+[![clerk.dashboard.overview](./rsc/clerk.dashboard.overview.jpg)](https://dashboard.clerk.com/)
+![clerk.dashboard.org](./rsc/clerk.dashboard.org.jpg)
+
+
 ## Getting Started
 
 First, run the development server:
