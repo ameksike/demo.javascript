@@ -4,10 +4,15 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 - [shadcn/ui](https://ui.shadcn.com/docs/cli)
 
 ### Develop 
-- npx create-next-app@latest
-- npx shadcn@latest init
-- VSCode Plugin: Tailwind CSS IntelliSense
-- npx shadcn@latest add button 
+- Create the app
+    - `npx create-next-app@latest`
+- Define the UI
+    - `npx shadcn@latest init`
+    - VSCode Plugin: Tailwind CSS IntelliSense
+    - `npx shadcn@latest add button`
+- Define the Authentication
+    - [Dashboard Clerk](https://dashboard.clerk.com/)
+    - `npm install @clerk/nextjs`
 
 ### Key Features:
 - Auth 
@@ -64,8 +69,10 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## References
 - [Getting started](https://nextjs.org/docs/getting-started/installation)
-- [Fullstack Trello Clone: Next.js 14, Server Actions, React, Prisma, Stripe, Tailwind, MySQL](https://www.youtube.com/watch?v=pRybm9lXW2c)
 - [Google fonts](https://fonts.google.com/)
 - [SVG Repo](https://www.svgrepo.com/collections/multicolor/13)
 - [User Management Platform](https://clerk.com/)
+- [Auth & Clerk + Next.js](https://clerk.com/docs/quickstarts/nextjs)
+- [Build your own sign-in and sign-up pages for your Next.js app with Clerk](https://clerk.com/docs/references/nextjs/custom-signup-signin-pages)
+- [Fullstack Trello Clone: Next.js 14, Server Actions, React, Prisma, Stripe, Tailwind, MySQL](https://www.youtube.com/watch?v=pRybm9lXW2c)
 
