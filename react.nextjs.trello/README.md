@@ -6,10 +6,18 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 ### Develop 
 - Create the app
     - `npx create-next-app@latest`
+
 - Define the UI
-    - `npx shadcn@latest init`
     - VSCode Plugin: Tailwind CSS IntelliSense
+    - `npx shadcn@latest init`
     - `npx shadcn@latest add button`
+    - `npx shadcn@latest add skeleton`
+    - `npx shadcn@latest add accordion`
+    - `npx shadcn@latest add separator`
+    - `npx shadcn@latest add sheet`
+    - `npm install usehooks-ts`
+    - `npm install zustand`
+
 - Define the Authentication
     - [Dashboard Clerk](https://dashboard.clerk.com/)
     - `npm install @clerk/nextjs`
@@ -73,11 +81,32 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 ## References
-- [Getting started](https://nextjs.org/docs/getting-started/installation)
+- [Nextjs: Getting started](https://nextjs.org/docs/getting-started/installation)
 - [Google fonts](https://fonts.google.com/)
 - [SVG Repo](https://www.svgrepo.com/collections/multicolor/13)
 - [User Management Platform](https://clerk.com/)
 - [Auth & Clerk + Next.js](https://clerk.com/docs/quickstarts/nextjs)
+- [UseHooks: Getting started](https://usehooks-ts.com/introduction)
+- [The Perils of Hydration](https://www.joshwcomeau.com/react/the-perils-of-rehydration/)
 - [Build your own sign-in and sign-up pages for your Next.js app with Clerk](https://clerk.com/docs/references/nextjs/custom-signup-signin-pages)
 - [Fullstack Trello Clone: Next.js 14, Server Actions, React, Prisma, Stripe, Tailwind, MySQL](https://www.youtube.com/watch?v=pRybm9lXW2c)
+
+### Error & Fix
+
+1. Error: Invalid src prop  
+    ![error.image](./rsc/next.error.image.jpg)
+    Update the following config file and restart the server
+    ```js
+    // ./next.config.mjs
+    const nextConfig = {
+        images: {
+            remotePatterns: [
+                {
+                    protocol: "https",
+                    hostname: "img.clerk.com"
+                }
+            ]
+        }
+    };
+    ```
 
