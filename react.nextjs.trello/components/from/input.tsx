@@ -14,10 +14,7 @@ interface FormInputProps {
     placeholder?: string;
     required?: boolean;
     disabled?: boolean;
-    error?: Record<string, string[] | undefined>;
-    errors?: {
-        title?: string[]
-    };
+    errors?: Record<string, string[] | undefined>;
     className?: string;
     defaultValue?: string;
     onBlur?: () => void
@@ -30,7 +27,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(({
     placeholder,
     required,
     disabled,
-    error,
+    errors,
     className,
     defaultValue = "",
     onBlur
@@ -66,7 +63,7 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(({
             </div>
             <FromErrors 
                 id={id}
-                errors={error}
+                errors={errors}
             />
         </div>
     )

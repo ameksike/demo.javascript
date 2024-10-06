@@ -25,7 +25,7 @@ export const FormBasic = () => {
             <div className="flex flex-col space-y-2">
                 <FormInput 
                     id="title"
-                  
+                    errors={fieldErrors as Record<string, string[] | undefined>}
                 />
             </div>
         </form>
