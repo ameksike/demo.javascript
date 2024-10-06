@@ -6,14 +6,7 @@ import { revalidatePath } from "next/cache";
 import { createAction } from "@/lib/action";
 import { BoardValidator } from "./schema";
 import { db } from "@/lib/db";
-
-interface ImageProps {
-    imageId: string;
-    imageThumbUrl: string;
-    imageFullUrl: string;
-    imageUserName: string;
-    imageLinkHTML: string;
-}
+import { ImageMeta } from "@/model/image.data";
 
 const handler = async (data: InputType): Promise<OutputType> => {
     const { userId, orgId } = auth();
@@ -26,7 +19,7 @@ const handler = async (data: InputType): Promise<OutputType> => {
     let imgObj = null;
 
     try {
-        imgObj = (image ? JSON.parse(image) : {}) as ImageProps;
+        imgObj = (image ? JSON.parse(image) : {}) as ImageMeta;
     }
     catch (error) {
         return {

@@ -83,7 +83,7 @@ export function FormPopOver({
                             errors={fieldErrors as Record<string, string[] | undefined>}
                         />
                     </div>
-                    <FormSubmit classname="w-full">  Create  </FormSubmit>
+                    <FormSubmit className="w-full">  Create  </FormSubmit>
                 </form>
             </PopoverContent>
         </Popover>

@@ -23,13 +23,13 @@ export const FormClient = () => {
                 />
                 <Button type="submit" disabled={pending} className=""> Submit </Button>
 
-                {state?.errors?.title ? (
+                {/*state?.errors?.title ? (
                     <div>
                         {state.errors.title.map((error: string) => (
                             <p key={error} className="text-red-500"> {error} </p>
                         ))}
                     </div>
-                ) : null}
+                ) : null*/}
             </div>
         </form>
     );

@@ -18,7 +18,8 @@ export const FormBasic = () => {
 
     const onSubmit = (formData: FormData) => {
         const title = formData.get("title") as string;
-        excecute({ title });
+        const image = formData.get("image") as string;
+        excecute({ title, image });
     }
 
     return (
