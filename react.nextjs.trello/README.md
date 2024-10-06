@@ -22,6 +22,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
     - `npx shadcn@latest add popover`
     - `npm install usehooks-ts`
     - `npm install zustand`
+    - `npm install sonner`
     - `npm install zod`
     - `npm install -D prisma`
     - `npm install @prisma/client`

@@ -13,6 +13,7 @@ import { FormInput } from "./input";
 import { FormSubmit } from "./submit";
 import { Button } from "../ui/button";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 
 interface FormPopOverProps {
     children: React.ReactNode;
@@ -29,10 +30,11 @@ export function FormPopOver({
 }: FormPopOverProps) {
     const { excecute, fieldErrors } = useAction(createBoard, {
         onSuccess(data) {
-            console.log(data)
+            console.log(data);
+            toast.success("Board created!");
         },
         onError(error) {
-            console.log(error)
+            toast.error(error);
         },
     });
 
