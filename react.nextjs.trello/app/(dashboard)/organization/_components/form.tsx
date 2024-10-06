@@ -3,6 +3,7 @@
 import { createBoard } from "@/app/actions/board/create";
 import { FormInput } from "@/components/from/input";
 import { useAction } from "@/app/actions/board/create/hook";
+import { FormSubmit } from "@/components/from/submit";
 
 export const FormBasic = () => {
     
@@ -28,6 +29,9 @@ export const FormBasic = () => {
                     id="title"
                     errors={fieldErrors as Record<string, string[] | undefined>}
                 />
+                <FormSubmit >
+                    Save
+                </FormSubmit>
             </div>
         </form>
     );
