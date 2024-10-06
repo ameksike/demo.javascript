@@ -16,6 +16,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
     - `npx shadcn@latest add accordion`
     - `npx shadcn@latest add separator`
     - `npx shadcn@latest add sheet`
+    - `npx shadcn@latest add input`
     - `npm install usehooks-ts`
     - `npm install zustand`
     - `npm install zod`
