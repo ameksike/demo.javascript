@@ -18,6 +18,8 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
     - `npx shadcn@latest add sheet`
     - `npx shadcn@latest add input`
     - `npx shadcn@latest add label`
+    - `npx shadcn@latest add tooltip`
+    - `npx shadcn@latest add popover`
     - `npm install usehooks-ts`
     - `npm install zustand`
     - `npm install zod`

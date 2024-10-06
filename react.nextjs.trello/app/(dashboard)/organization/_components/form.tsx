@@ -1,8 +1,8 @@
 "use client";
 
-import { createBoard } from "@/app/actions/board/create";
+import { createBoard } from "@/actions/board/create";
 import { FormInput } from "@/components/from/input";
-import { useAction } from "@/app/actions/board/create/hook";
+import { useAction } from "@/actions/board/create/hook";
 import { FormSubmit } from "@/components/from/submit";
 
 export const FormBasic = () => {
