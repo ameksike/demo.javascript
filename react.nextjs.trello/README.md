@@ -7,8 +7,9 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 - Create the app
     - `npx create-next-app@latest`
 
-- Define the UI
+- Set up
     - VSCode Plugin: Tailwind CSS IntelliSense
+    - VSCode Plugin: Prisma.prisma
     - `npx shadcn@latest init`
     - `npx shadcn@latest add button`
     - `npx shadcn@latest add skeleton`
@@ -17,10 +18,24 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
     - `npx shadcn@latest add sheet`
     - `npm install usehooks-ts`
     - `npm install zustand`
+    - `npm install zod`
+    - `npm install -D prisma`
+    - `npm install @prisma/client`
+    - `npx prisma init`
+    - `npx prisma studio`
+    - `npx prisma generate`
+    - `npx prisma db push`
 
-- Define the Authentication
+- Third party services
+    - [Planetscale](https://planetscale.com/)
     - [Dashboard Clerk](https://dashboard.clerk.com/)
     - `npm install @clerk/nextjs`
+
+### Docker Admin
+- docker-compose up mariadb 
+- docker-compose up sqlserver 
+- sqlserver://sa:pass@l27.0.0.1:1433;database=AppDB;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
+- sqlserver://sa:pass@localhost:1433;database=AppDB;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
 
 ### Key Features:
 - Auth 
@@ -81,15 +96,29 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 ## References
-- [Nextjs: Getting started](https://nextjs.org/docs/getting-started/installation)
-- [Google fonts](https://fonts.google.com/)
-- [SVG Repo](https://www.svgrepo.com/collections/multicolor/13)
-- [User Management Platform](https://clerk.com/)
+- [Next.js: Getting started](https://nextjs.org/docs/getting-started/installation)
+- [Next.js: Fast Refresh](https://nextjs.org/docs/architecture/fast-refresh)
+- [Next.js: Server-side form validation](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations#server-side-form-validation)
+- [Next.js: Fetching data on the server with the fetch API](https://nextjs.org/docs/app/building-your-application/data-fetching/fetching#fetching-data-on-the-server-with-the-fetch-api)
+- [Auth & Clerk Middlewares](https://clerk.com/docs/references/nextjs/clerk-middleware)
 - [Auth & Clerk + Next.js](https://clerk.com/docs/quickstarts/nextjs)
+- [Auth & Clerk & User Management Platform](https://clerk.com/)
+- [Auth & Build your own sign-in and sign-up pages for your Next.js app with Clerk](https://clerk.com/docs/references/nextjs/custom-signup-signin-pages)
+- [UI: Shadcn & Dark Mode](https://ui.shadcn.com/docs/dark-mode/next)
+- [UI: Grid and Dot Backgrounds](https://ui.aceternity.com/components/grid-and-dot-backgrounds)
+- [UI: Google fonts](https://fonts.google.com/)
+- [UI: SVG Repo](https://www.svgrepo.com/collections/multicolor/13)
 - [UseHooks: Getting started](https://usehooks-ts.com/introduction)
 - [The Perils of Hydration](https://www.joshwcomeau.com/react/the-perils-of-rehydration/)
-- [Build your own sign-in and sign-up pages for your Next.js app with Clerk](https://clerk.com/docs/references/nextjs/custom-signup-signin-pages)
 - [Fullstack Trello Clone: Next.js 14, Server Actions, React, Prisma, Stripe, Tailwind, MySQL](https://www.youtube.com/watch?v=pRybm9lXW2c)
+- [Download and install Azure Data Studio](https://learn.microsoft.com/en-us/azure-data-studio/download-azure-data-studio?tabs=win-install%2Cwin-user-install%2Credhat-install%2Cwindows-uninstall%2Credhat-uninstall)
+- [Build and Deploy an Amazing Developer Portfolio with Next JS and Framer Motion](https://www.youtube.com/watch?v=FTH6Dn3AyIQ)
+- [Learn React 18 with Redux Toolkit – Full Tutorial for Beginners](https://www.youtube.com/watch?v=2-crBg6wpp0)
+- [EASY Authentication with Firebase & Next.JS 18 (Latest)](https://www.youtube.com/watch?v=qb2Ug9Yoatg)
+- [Build admin panel template from scratch | Next js And Tailwind CSS Episode 01](https://www.youtube.com/watch?v=8asf9zF-jbg&list=PLUX0GmrifrwenUM6pdfQdzKk1OZnc2_GG)
+- [Todo App using Next.js 14 Server Actions](https://www.youtube.com/watch?v=_RshYUBc8oA)
+- [Build a Full Stack CRUD Todo App with Next.js 14, MongoDB, and Prisma](https://www.youtube.com/watch?v=9OoKXOq7ENo)
+
 
 ### Error & Fix
 

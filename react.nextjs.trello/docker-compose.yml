@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+  mariadb:
+    image: mariadb:10.4.24
+    ports:
+      - "3366:3306"
+    volumes:
+      - ./tmp/mariadb:/var/lib/mysql
+    environment:
+      - MARIADB_ROOT_PASSWORD=pass
+      - MARIADB_PASSWORD=pass
+      - MARIADB_USER=user
+      - MARIADB_DATABASE=fastify
+    command: mysqld --sql_mode=""
+    healthcheck: 
+      test: ["CMD", "mysqladmin", "ping", "--silent"]
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    # image: mcr.microsoft.com/mssql/server:2019-latest
+    # image: mcr.microsoft.com/mssql/server:2019-CU3-ubuntu-18.04
+    # image: mcr.microsoft.com/mssql/server:2017-latest
+    # user: '0:0'
+    # user: "10001"  # Use the non-root mssql user
+    # container_name: sqlserver
+    # restart: always
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=StrongPassword123!
+      # - MSSQL_PID=Express
+      # - SA_PASSWORD=PasswordO1.
+    # volumes:
+      # - ./tmp/sqlserver:/var/opt/mssql
+      # sqlserver://sa:StrongPassword123!@127.0.0.1:1433;database=AppDB;TrustServerCertificate=true;encrypt=DANGER_PLAINTEXT
