@@ -21,20 +21,16 @@ const boardValidator = z.object({
 });
 
 export async function createSafe(prevState: State, formData: FormData) {
-
     const validateFields = boardValidator.safeParse({
         title: formData?.get("title") as string
     });
-
     if (!validateFields.success) {
         return {
             errors: validateFields.error.flatten().fieldErrors,
             message: "Missing fields."
         }
     }
-
     const { title } = validateFields.data;
-
     try {
         await db.board.create({
             data: {
@@ -48,13 +44,11 @@ export async function createSafe(prevState: State, formData: FormData) {
             message: "Database error"
         }
     }
-
     revalidatePath("/organization/org_2n0yRQkYxJOsPwwtNLmGtmqtHa3");
     redirect("/organization/org_2n0yRQkYxJOsPwwtNLmGtmqtHa3");
 }
 
 export async function create(formData: FormData) {
-
     try {
         const { title } = boardValidator.parse({
             title: formData?.get("title") as string
