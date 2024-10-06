@@ -7,34 +7,45 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 - Create the app
     - `npx create-next-app@latest`
 
-- Set up
-    - VSCode Plugin: Tailwind CSS IntelliSense
-    - VSCode Plugin: Prisma.prisma
-    - `npx shadcn@latest init`
-    - `npx shadcn@latest add button`
-    - `npx shadcn@latest add skeleton`
-    - `npx shadcn@latest add accordion`
-    - `npx shadcn@latest add separator`
-    - `npx shadcn@latest add sheet`
-    - `npx shadcn@latest add input`
-    - `npx shadcn@latest add label`
-    - `npx shadcn@latest add tooltip`
-    - `npx shadcn@latest add popover`
-    - `npm install usehooks-ts`
-    - `npm install zustand`
-    - `npm install sonner`
-    - `npm install zod`
-    - `npm install -D prisma`
-    - `npm install @prisma/client`
-    - `npx prisma init`
-    - `npx prisma studio`
-    - `npx prisma generate`
-    - `npx prisma db push`
+- Set Up
+    - VSCode Plugin: 
+        - Tailwind CSS IntelliSense
+        - Prisma.prisma
+
+    - Shadcn
+        - `npx shadcn@latest init`
+        - `npx shadcn@latest add button`
+        - `npx shadcn@latest add skeleton`
+        - `npx shadcn@latest add accordion`
+        - `npx shadcn@latest add separator`
+        - `npx shadcn@latest add sheet`
+        - `npx shadcn@latest add input`
+        - `npx shadcn@latest add label`
+        - `npx shadcn@latest add tooltip`
+        - `npx shadcn@latest add popover`
+
+    - install
+        - `npm install usehooks-ts`
+        - `npm install zustand`
+        - `npm install sonner`
+        - `npm install zod`
+        - `npm install -D prisma`
+        - `npm install @prisma/client`
+
+    - Prisma
+        - `npx prisma init`
+        - `npx prisma studio`
+        - `npx prisma generate`
+        - `npx prisma migrate reset`
+        - `npx prisma db push`
 
 - Third party services
     - [Planetscale](https://planetscale.com/)
     - [Dashboard Clerk](https://dashboard.clerk.com/)
-    - `npm install @clerk/nextjs`
+        - `npm install @clerk/nextjs`
+    - [Unsplash](https://unsplash.com/developers)
+        - [Unsplash Dashboard](https://unsplash.com/oauth/applications)
+        - `npm install unsplash-js`
 
 ### Docker Admin
 - docker-compose up mariadb 

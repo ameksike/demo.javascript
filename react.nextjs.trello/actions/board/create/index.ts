@@ -7,19 +7,40 @@ import { createAction } from "@/lib/action";
 import { BoardValidator } from "./schema";
 import { db } from "@/lib/db";
 
+interface ImageProps {
+    imageId: string;
+    imageThumbUrl: string;
+    imageFullUrl: string;
+    imageUserName: string;
+    imageLinkHTML: string;
+}
+
 const handler = async (data: InputType): Promise<OutputType> => {
-    const { userId } = auth();
-    if (!userId) {
+    const { userId, orgId } = auth();
+    if (!userId || !orgId) {
         return {
             error: "Unauthorized"
         }
     }
-    const { title } = data;
+    let { title, image } = data;
+    let imgObj = null;
+
+    try {
+        imgObj = (image ? JSON.parse(image) : {}) as ImageProps;
+    }
+    catch (error) {
+        return {
+            error: "Missing fields. Failed to create board."
+        }
+    }
+
     let board;
     try {
         board = await db.board.create({
             data: {
-                title
+                title,
+                orgId,
+                ...imgObj
             }
         });
     }
