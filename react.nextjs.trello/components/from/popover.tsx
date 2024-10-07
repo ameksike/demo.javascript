@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/popover";
 
 import { createBoard } from "@/actions/board/create";
-import { useAction } from "@/actions/board/create/hook";
+import { useAction } from "@/services/hook";
 import { FormInput } from "./input";
 import { FormSubmit } from "./submit";
 import { Button } from "../ui/button";

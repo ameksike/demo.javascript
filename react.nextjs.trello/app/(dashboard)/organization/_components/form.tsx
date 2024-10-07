@@ -2,7 +2,7 @@
 
 import { createBoard } from "@/actions/board/create";
 import { FormInput } from "@/components/from/input";
-import { useAction } from "@/actions/board/create/hook";
+import { useAction } from "@/services/hook";
 import { FormSubmit } from "@/components/from/submit";
 
 export const FormBasic = () => {

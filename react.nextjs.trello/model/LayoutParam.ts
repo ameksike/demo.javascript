@@ -1,4 +1,4 @@
 export interface LayoutParam<T = any> {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     params?: T
 }

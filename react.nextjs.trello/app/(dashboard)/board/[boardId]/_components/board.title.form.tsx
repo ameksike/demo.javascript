@@ -1,6 +1,6 @@
 "use client";
 
-import { useAction } from "@/actions/board/create/hook";
+import { useAction } from "@/services/hook";
 import { updateBoard } from "@/actions/board/update";
 import { FormInput } from "@/components/from/input";
 import { Button } from "@/components/ui/button";

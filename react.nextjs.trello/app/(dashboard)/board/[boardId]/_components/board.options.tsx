@@ -1,6 +1,6 @@
 "use client";
 
-import { useAction } from "@/actions/board/create/hook";
+import { useAction } from "@/services/hook";
 import { deleteBoard } from "@/actions/board/delete";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
