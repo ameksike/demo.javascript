@@ -7,6 +7,8 @@ import { ImageMeta } from "@/model/image.data";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z as validator } from "zod";
+import { } from '@prisma/client/runtime/library';
+
 
 export type State = {
     errors?: {
@@ -97,8 +99,34 @@ export async function create(formData: FormData) {
     revalidatePath("/organization/org_2n0yRQkYxJOsPwwtNLmGtmqtHa3");
 }
 
+/*
+export interface BoardListOptions extends BoardWhereUniqueInput {
+    orgId?: string;
+}
+
 export async function list({ orgId }: { orgId?: string }) {
-    return await orgId ? db.board.findMany({ where: { orgId }, orderBy: { createdAt: "desc" } }) : db.board.findMany();
+    //return await orgId ? db.board.findMany({ where: { orgId }, orderBy: { createdAt: "desc" } }) : db.board.findMany();
+}*/
+
+export type SelectOptions = {
+    orgId?: string;
+    createdAt?: Date;
+    id?: string;
+};
+
+export async function list(options: SelectOptions = {}) {
+    const { orgId, createdAt } = options;
+    return await db.board.findMany({
+        where: { ...options },
+        orderBy: { createdAt: "desc" },
+    });
+}
+
+export async function select(options: SelectOptions) {
+    const { orgId } = options;
+    return await db.board.findFirst({
+        where: { ...(orgId && { orgId }), ...options },
+    });
 }
 
 export async function remove(id: string) {
