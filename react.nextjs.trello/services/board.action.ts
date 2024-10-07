@@ -99,15 +99,6 @@ export async function create(formData: FormData) {
     revalidatePath("/organization/org_2n0yRQkYxJOsPwwtNLmGtmqtHa3");
 }
 
-/*
-export interface BoardListOptions extends BoardWhereUniqueInput {
-    orgId?: string;
-}
-
-export async function list({ orgId }: { orgId?: string }) {
-    //return await orgId ? db.board.findMany({ where: { orgId }, orderBy: { createdAt: "desc" } }) : db.board.findMany();
-}*/
-
 export type SelectOptions = {
     orgId?: string;
     createdAt?: Date;
@@ -115,7 +106,6 @@ export type SelectOptions = {
 };
 
 export async function list(options: SelectOptions = {}) {
-    const { orgId, createdAt } = options;
     return await db.board.findMany({
         where: { ...options },
         orderBy: { createdAt: "desc" },
