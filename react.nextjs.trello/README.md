@@ -35,9 +35,9 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
     - Prisma
         - `npx prisma init`
         - `npx prisma studio`
-        - `npx prisma generate`
         - `npx prisma migrate reset`
         - `npx prisma db push`
+        - `npx prisma generate`
 
 - Third party services
     - [Planetscale](https://planetscale.com/)
