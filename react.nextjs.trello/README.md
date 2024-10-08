@@ -23,6 +23,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
         - `npx shadcn@latest add label`
         - `npx shadcn@latest add tooltip`
         - `npx shadcn@latest add popover`
+        - `npx shadcn@latest add textarea`
 
     - install
         - `npm install usehooks-ts`
