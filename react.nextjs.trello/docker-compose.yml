@@ -34,3 +34,13 @@ services:
     # volumes:
       # - ./tmp/sqlserver:/var/opt/mssql
       # sqlserver://sa:StrongPassword123!@127.0.0.1:1433;database=AppDB;TrustServerCertificate=true;encrypt=DANGER_PLAINTEXT
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    environment:
+      - REDIS_PASSWORD=root
+      - REDIS_USER=user
+    volumes:
+      - ./tmp/redis:/data
