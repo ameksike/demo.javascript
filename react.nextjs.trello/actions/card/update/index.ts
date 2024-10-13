@@ -14,19 +14,19 @@ const handler = async (data: InputType): Promise<OutputType> => {
             error: "Unauthorized"
         }
     }
-    let { title, id, boardId } = data;
-    let list;
+    let { id, boardId, ...values } = data;
+    let card;
     try {
-        list = await db.list.update({
-            where: { id, boardId, board: { orgId } },
-            data: { title }
+        card = await db.card.update({
+            where: { id, list: { board: { orgId } } },
+            data: { ...values }
         });
     }
     catch (error) {
         return { error: "Failed to update." };
     }
     revalidatePath("/board/" + boardId);
-    return { data: list };
+    return { data: card };
 }
 
 export const updateCard = createAction(CardValidator, handler);

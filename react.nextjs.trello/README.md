@@ -24,6 +24,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
         - `npx shadcn@latest add tooltip`
         - `npx shadcn@latest add popover`
         - `npx shadcn@latest add textarea`
+        - `npx shadcn@latest add dialog`
 
     - install
         - `npm install usehooks-ts`
@@ -33,6 +34,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
         - `npm install -D prisma`
         - `npm install @prisma/client`
         - `npm install @hello-pangea/dnd`
+        - `npm install @tanstack/react-query`
 
     - Prisma
         - `npx prisma init`
