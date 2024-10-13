@@ -32,6 +32,7 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
         - `npm install zod`
         - `npm install -D prisma`
         - `npm install @prisma/client`
+        - `npm install @hello-pangea/dnd`
 
     - Prisma
         - `npx prisma init`
