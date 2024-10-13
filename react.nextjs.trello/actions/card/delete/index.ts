@@ -16,17 +16,17 @@ const handler = async (data: InputType): Promise<OutputType> => {
         }
     }
     let { id, boardId } = data;
-    let list;
+    let card;
     try {
-        list = await db.list.delete({
-            where: { id, boardId, board: { orgId } }
+        card = await db.card.delete({
+            where: { id, list: { board: { orgId } } }
         });
     }
     catch (error) {
         return { error: "Failed to delete." };
     }
     revalidatePath("/board/" + boardId);
-    return { data: list };
+    return { data: card };
 }
 
 export const deleteCard = createAction(CardValidator, handler);
