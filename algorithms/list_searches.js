@@ -71,7 +71,7 @@ console.log(getByFnIterative(people)) // maximum
  * @param {Array<Object>} list 
  * @param {Function} [fn] 
  * @param {Number} [fixed=2] 
- * @returns 
+ * @returns {Number}
  */
 function getAverage(list, fixed = 2, fn = null) {
     if (!list || list.length === 0) return 0;
