@@ -42,10 +42,10 @@ function getByFn(list, fn = null) {
 }
 
 console.log(getByFn(people, (s, c) => c.age < s.age)) // minimum 
-console.log(getByFn(people)) // maximin  
+console.log(getByFn(people)) // maximum  
 
 /**
- * @description High-performance approach
+ * @description High-performance approach to getByFn
  * @param {Array<Object>} list 
  * @param {Function} [fn] 
  * @returns {Object}
@@ -64,7 +64,7 @@ function getByFnIterative(list, fn = null) {
 }
 
 console.log(getByFnIterative(people, (s, c) => c.age < s.age)) // minimum 
-console.log(getByFnIterative(people)) // maximin  
+console.log(getByFnIterative(people)) // maximum  
 
 /**
  * @description get average function 
@@ -73,7 +73,7 @@ console.log(getByFnIterative(people)) // maximin
  * @param {Number} [fixed=2] 
  * @returns 
  */
-function getAverage(list, fn = null, fixed = 2) {
+function getAverage(list, fixed = 2, fn = null) {
     if (!list || list.length === 0) return 0;
     fn = fn instanceof Function ? fn : (current) => current?.age || 0;
     const total = list.reduce((stored, current) => stored + fn(current), 0);

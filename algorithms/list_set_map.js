@@ -30,6 +30,7 @@ class SuperFastSet {
         for (const item of list) {
             this.add(item);
         }
+        return this;
     }
 
     // O(1) lookup
