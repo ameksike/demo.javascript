@@ -79,3 +79,16 @@ function getAverage(list, fixed = 2, fn = null) {
     const total = list.reduce((stored, current) => stored + fn(current), 0);
     return Number((total / list.length).toFixed(fixed));
 }
+
+/**
+ * List operations
+ */
+console.log(Math.min(1, 3, 2, 8, 5, 30, 4));        // 1
+console.log(Math.max(...[1, 3, 2, 8, 5, 30, 4]));   // 30
+console.log([1,2,3,4,5,6,7,8,9].slice(-2)) // Array [8,9]
+console.log([1,2,3,4,5,6,7,8,9].pop())     // 9
+console.log([1,2,3,4,5,6,7,8,9].shift())   // 1
+
+let list = [0,1,2,3,4,5,6,7,8,9];
+console.log(list.slice(0, list.length/2))   // Array [0, 1, 2, 3, 4]
+console.log(list.slice(list.length/2))      // Array [5, 6, 7, 8, 9]
