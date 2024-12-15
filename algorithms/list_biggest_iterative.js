@@ -28,3 +28,40 @@ function getLastTwoMax(list, fn = null) {
 
 
 console.log(getLastTwoMax(people));
+
+/**
+ * @description Searching based on the default comparison function is maximum
+ * @param {Array<Object>} list 
+ * @param {Function} fn 
+ * @returns {Object}
+ */
+function getByFn(list, fn = null) {
+    fn = fn instanceof Function ? fn : (stored, current) => (current?.age || 0) > (stored?.age || 0);
+    if (!list || list.length === 0) return null;
+    return list.reduce((stored, current) => fn(stored, current) ? current : stored);
+}
+
+console.log(getByFn(people, (s, c) => c.age < s.age)) // minimum 
+console.log(getByFn(people)) // maximin  
+
+/**
+ * @description High-performance approach
+ * @param {Array<Object>} list 
+ * @param {Function} fn 
+ * @returns {Object}
+ */
+function getByFnIterative(list, fn = null) {
+    if (!list || list.length === 0) return null;
+    fn = fn instanceof Function ? fn : (stored, current) => (current?.age || 0) > (stored?.age || 0);
+    let stored = list[0];
+    // Single-pass algorithm
+    for (let i = 1; i < list.length; i++) {
+        if (fn(stored, list[i])) {
+            stored = list[i];
+        }
+    }
+    return stored;
+}
+
+console.log(getByFnIterative(people, (s, c) => c.age < s.age)) // minimum 
+console.log(getByFnIterative(people)) // maximin  

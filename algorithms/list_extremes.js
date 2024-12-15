@@ -1,17 +1,17 @@
 /**
- * @description Find the two oldest and two youngest people from a list of people
- * @param {Array} people - List of people with name and age
- * @returns {Object} Object containing oldest and youngest people
+ * @description Find the two oldest and two youngest list from a list of list
+ * @param {Array} list - List of list with name and age
+ * @returns {Object} Object containing oldest and youngest list
  */
-function findExtremes(people, count = 2, fn) {
+function findExtremes(list, count = 2, fn) {
     // Validate input
-    if (!Array.isArray(people) || people.length < count) {
-        throw new Error('Input must be an array with at least two people');
+    if (!Array.isArray(list) || list.length < count) {
+        throw new Error('Input must be an array with at least two list');
     }
     // Define sort function 
     fn = fn instanceof Function ? fn : (a, b) => a.age - b.age;
-    // Sort people by age in ascending and descending order
-    const sortedBy = [...people].sort(fn);
+    // Sort list by age in ascending and descending order
+    const sortedBy = [...list].sort(fn);
     return {
         maxs: sortedBy.slice(-1 * count).reverse(),
         mins: sortedBy.slice(0, count),
@@ -20,7 +20,7 @@ function findExtremes(people, count = 2, fn) {
 }
 
 // Example usage
-const people = [
+const list = [
     { name: 'Alice', age: 25 },
     { name: 'Bob', age: 30 },
     { name: 'Charlie', age: 22 },
@@ -28,7 +28,7 @@ const people = [
     { name: 'Eve', age: 35 }
 ];
 
-const ageExtremes = findAgeExtremes(people);
+const ageExtremes = findAgeExtremes(list);
 console.log('Oldest:', ageExtremes.oldest);
 console.log('Youngest:', ageExtremes.youngest);
 
@@ -54,4 +54,4 @@ function getExtremes(list, fn = null) {
     }
     return { max, min };
 }
-console.log(getExtremes(people));
+console.log(getExtremes(list));
