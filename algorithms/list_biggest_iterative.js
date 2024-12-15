@@ -47,7 +47,7 @@ console.log(getByFn(people)) // maximin
 /**
  * @description High-performance approach
  * @param {Array<Object>} list 
- * @param {Function} fn 
+ * @param {Function} [fn] 
  * @returns {Object}
  */
 function getByFnIterative(list, fn = null) {
@@ -65,3 +65,17 @@ function getByFnIterative(list, fn = null) {
 
 console.log(getByFnIterative(people, (s, c) => c.age < s.age)) // minimum 
 console.log(getByFnIterative(people)) // maximin  
+
+/**
+ * @description get average function 
+ * @param {Array<Object>} list 
+ * @param {Function} [fn] 
+ * @param {Number} [fixed=2] 
+ * @returns 
+ */
+function getAverage(list, fn = null, fixed = 2) {
+    if (!list || list.length === 0) return 0;
+    fn = fn instanceof Function ? fn : (current) => current?.age || 0;
+    const total = list.reduce((stored, current) => stored + fn(current), 0);
+    return Number((total / list.length).toFixed(fixed));
+}
