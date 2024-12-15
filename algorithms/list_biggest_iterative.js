@@ -26,26 +26,5 @@ function getLastTwoMax(list, fn = null) {
     return { max1, max2 };
 }
 
-/**
- * @description Get the max and min from a list
- * @param {Array} list 
- * @param {Function} [fn] 
- * @returns {{max:Object; min:Object}}
- */
-function getExtremes(list, fn = null) {
-    fn = fn instanceof Function ? fn : (obj) => obj?.age || 0;
-    let max = list[0], min = list[0];
-    for (let itm of list) {
-        if (fn(itm) > fn(max)) {
-            max = itm;
-        }
-        if (fn(itm) < fn(min)) {
-            min = itm;
-        }
-    }
-    return { max, min };
-}
 
 console.log(getLastTwoMax(people));
-
-console.log(getExtremes(people));
