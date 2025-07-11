@@ -21,7 +21,7 @@ function demonstrateLogLevels(): void {
     
     const logger = new Logger({ level, category: 'DEMO' });
     
-    // Test all log methods
+    // Test all log methods with new structure
     logger.error('This is an error message');
     logger.warn('This is a warning message');
     logger.debug('This is a debug message');
@@ -32,31 +32,46 @@ function demonstrateLogLevels(): void {
 }
 
 /**
- * Demo showing logger with metadata
+ * Demo showing logger with metadata and flow IDs
  */
 function demonstrateMetadata(): void {
   console.log('\n🏷️ === METADATA DEMONSTRATION ===\n');
   
   const logger = new Logger({ level: LogLevel.INFO, category: 'METADATA' });
   
-  logger.info('User login attempt', { 
-    userId: 12345, 
-    username: 'john_doe', 
-    ip: '192.168.1.1',
-    timestamp: new Date()
+  // Using new object structure with flow ID
+  const loginFlowId = '20241220150000001';
+  
+  logger.info({
+    message: 'User login attempt',
+    data: { 
+      userId: 12345, 
+      username: 'john_doe', 
+      ip: '192.168.1.1',
+      timestamp: new Date()
+    },
+    flow: loginFlowId
   });
   
-  logger.error('Database connection failed', {
-    database: 'users_db',
-    host: 'localhost',
-    port: 5432,
-    error: 'Connection timeout'
+  logger.error({
+    message: 'Database connection failed',
+    data: {
+      database: 'users_db',
+      host: 'localhost',
+      port: 5432,
+      error: 'Connection timeout'
+    },
+    flow: loginFlowId
   });
   
-  logger.warn('High memory usage detected', {
-    usage: '85%',
-    threshold: '80%',
-    pid: 1234
+  logger.warn({
+    message: 'High memory usage detected',
+    data: {
+      usage: '85%',
+      threshold: '80%',
+      pid: 1234
+    }
+    // Note: flow ID will be auto-generated when not provided
   });
 }
 
@@ -69,12 +84,18 @@ function demonstrateOutputFormats(): void {
   console.log('Object output (default):');
   const objectLogger = new Logger({ level: LogLevel.INFO, category: 'OBJ', type: 'object' });
   objectLogger.info('This is an object output');
-  objectLogger.error('This is an error as object', { code: 500, details: 'Internal Server Error' });
+  objectLogger.error({
+    message: 'This is an error as object',
+    data: { code: 500, details: 'Internal Server Error' }
+  });
   
   console.log('\nJSON string output:');
   const jsonLogger = new Logger({ level: LogLevel.INFO, category: 'JSON', type: 'json' });
   jsonLogger.info('This is a JSON string output');
-  jsonLogger.error('This is an error as JSON', { code: 404, details: 'Not Found' });
+  jsonLogger.error({
+    message: 'This is an error as JSON',
+    data: { code: 404, details: 'Not Found' }
+  });
 }
 
 /**
@@ -104,7 +125,7 @@ function demonstrateSettings(): void {
 }
 
 /**
- * Demo showing different categories
+ * Demo showing different categories and flow-based logging
  */
 function demonstrateCategories(): void {
   console.log('\n📂 === CATEGORIES DEMONSTRATION ===\n');
@@ -150,10 +171,62 @@ function demonstrateLevelHierarchy(): void {
 }
 
 /**
+ * Demo showing new flow-based logging features
+ */
+function demonstrateFlowBasedLogging(): void {
+  console.log('\n🌊 === FLOW-BASED LOGGING DEMONSTRATION ===\n');
+  
+  const logger = new Logger({ level: LogLevel.INFO, category: 'FLOW' });
+  
+  // Test 1: Auto-generated flow IDs
+  console.log('1. Auto-generated flow IDs:');
+  logger.info({
+    message: 'Process started',
+    data: { processId: 'proc-001', type: 'data-sync' }
+  });
+  
+  logger.info({
+    message: 'Process completed',
+    data: { processId: 'proc-001', duration: '2.5s', status: 'success' }
+  });
+  
+  // Test 2: Custom flow ID for workflow tracking
+  console.log('\n2. Custom flow ID for workflow tracking:');
+  const workflowFlowId = '20241220150500001';
+  
+  logger.info({
+    message: 'Workflow started',
+    data: { workflowName: 'user-registration', step: 'validation' },
+    flow: workflowFlowId
+  });
+  
+  logger.warn({
+    message: 'Validation warning',
+    data: { field: 'email', issue: 'domain not verified' },
+    flow: workflowFlowId
+  });
+  
+  logger.info({
+    message: 'Workflow completed',
+    data: { workflowName: 'user-registration', step: 'completion', userId: 'user-456' },
+    flow: workflowFlowId
+  });
+  
+  // Test 3: Mixed input types
+  console.log('\n3. Mixed input types:');
+  logger.info('Simple string message');
+  logger.warn(404);
+  logger.error({
+    message: 'Complex error with data',
+    data: { module: 'auth', errorCode: 'AUTH_001', timestamp: new Date() }
+  });
+}
+
+/**
  * Main demo function
  */
 export function runLoggerDemo(): void {
-  console.log('🚀 Starting Simplified Logger Demo...\n');
+  console.log('🚀 Starting Enhanced Logger Demo...\n');
   
   demonstrateLogLevels();
   demonstrateMetadata();
@@ -161,8 +234,15 @@ export function runLoggerDemo(): void {
   demonstrateSettings();
   demonstrateCategories();
   demonstrateLevelHierarchy();
+  demonstrateFlowBasedLogging();
   
-  console.log('\n🎯 Logger demo completed successfully!');
+  console.log('\n🎯 Enhanced logger demo completed successfully!');
+  console.log('\n✨ New features demonstrated:');
+  console.log('  • Flow-based logging with auto-generated IDs');
+  console.log('  • Custom flow IDs for workflow tracking');
+  console.log('  • Mixed input types (string, number, object)');
+  console.log('  • Enhanced metadata structure');
+  console.log('  • Date field instead of timestamp for readability');
 }
 
 // Run the demo if this file is executed directly

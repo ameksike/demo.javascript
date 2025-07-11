@@ -17,9 +17,7 @@ export class FileLogProcessor implements LogProcessor {
    * @param outputType - The output format
    */
   process(entry: LogEntry, level: LogLevel, outputType: LogOutputType): void {
-    const logLine = outputType === 'json' 
-      ? JSON.stringify(entry) 
-      : `${entry.timestamp} [${entry.level}] ${entry.category ? `[${entry.category}] ` : ''}${entry.message}${entry.data ? ` ${JSON.stringify(entry.data)}` : ''}`;
+    const logLine = this.formatLogLine(entry, outputType);
     
     // Simulate file writing
     console.log(`[FILE] Writing to ${this.filePath}: ${logLine}`);
@@ -57,12 +55,13 @@ export class FileLogProcessor implements LogProcessor {
     }
     
     // Human-readable format
-    const timestamp = entry.timestamp;
+    const date = entry.date;
     const level = `[${entry.level}]`;
     const category = entry.category ? `[${entry.category}]` : '';
+    const flow = `[${entry.flow}]`;
     const message = entry.message;
     const data = entry.data ? ` ${JSON.stringify(entry.data)}` : '';
     
-    return `${timestamp} ${level} ${category} ${message}${data}`.trim();
+    return `${date} ${level} ${category} ${flow} ${message}${data}`.trim();
   }
 } 

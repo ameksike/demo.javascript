@@ -111,13 +111,42 @@ async function advancedDemo(): Promise<void> {
     mainLogger.info('This info will NOT show after level change');
     mainLogger.error('This error will show after level change');
     
-    // Test logger with additional data
-    console.log('\n🏷️ Testing Logger with Additional Data:');
-    mainLogger.error('Configuration load failed', {
-      configFile: 'app.config.json',
-      error: 'File not found',
-      retries: 3
+    // Test new flow-based logging structure
+    console.log('\n🌊 Testing New Flow-based Logging Structure:');
+    const workflowFlowId = '20241220145000001';
+    
+    mainLogger.error({
+      message: 'Configuration load failed',
+      data: {
+        configFile: 'app.config.json',
+        error: 'File not found',
+        retries: 3
+      },
+      flow: workflowFlowId
     });
+    
+    mainLogger.info({
+      message: 'Attempting configuration reload',
+      data: {
+        configFile: 'app.config.json',
+        fallbackUsed: true
+      },
+      flow: workflowFlowId
+    });
+    
+    // Test simple string logging (backward compatible)
+    console.log('\n⚡ Testing Backward Compatible String Logging:');
+    mainLogger.info('Simple string message still works');
+    mainLogger.error('Simple error message');
+    
+    // Test mixed input types
+    console.log('\n🔢 Testing Mixed Input Types:');
+    mainLogger.info(12345); // Number
+    mainLogger.warn('String message'); // String
+    mainLogger.error({
+      message: 'Complex object message',
+      data: { errorCode: 500, module: 'database' }
+    }); // Object
     
     // Test unregistration
     console.log('\n🗑️ Testing Unregistration:');

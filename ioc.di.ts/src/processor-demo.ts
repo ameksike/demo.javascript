@@ -30,7 +30,8 @@ class EmailLogProcessor implements LogProcessor {
         Level: ${entry.level}
         Message: ${entry.message}
         Category: ${entry.category || 'Unknown'}
-        Timestamp: ${entry.timestamp}
+        Date: ${entry.date}
+        Flow: ${entry.flow}
         Data: ${entry.data ? JSON.stringify(entry.data, null, 2) : 'None'}
         
         Please investigate immediately.
@@ -43,8 +44,6 @@ class EmailLogProcessor implements LogProcessor {
     }
   }
 }
-
-
 
 /**
  * Demo showing different log processors
@@ -60,7 +59,10 @@ function demonstrateLogProcessors(): void {
     type: 'object'
   });
   consoleLogger.info('This goes to console');
-  consoleLogger.error('Console error message', { errorCode: 500 });
+  consoleLogger.error({
+    message: 'Console error message',
+    data: { errorCode: 500 }
+  });
 
   // 2. MongoDB processor
   console.log('\n2. MongoDB Processor:');
@@ -72,7 +74,10 @@ function demonstrateLogProcessors(): void {
     processor: mongoProcessor
   });
   mongoLogger.debug('Debug message for MongoDB');
-  mongoLogger.error('Error stored in MongoDB', { userId: 123, action: 'login' });
+  mongoLogger.error({
+    message: 'Error stored in MongoDB',
+    data: { userId: 123, action: 'login' }
+  });
 
   // 3. File processor
   console.log('\n3. File Processor:');
@@ -84,7 +89,10 @@ function demonstrateLogProcessors(): void {
     processor: fileProcessor
   });
   fileLogger.warn('Warning logged to file');
-  fileLogger.error('Error logged to file', { component: 'auth', details: 'Token expired' });
+  fileLogger.error({
+    message: 'Error logged to file',
+    data: { component: 'auth', details: 'Token expired' }
+  });
 
   // 4. Email processor
   console.log('\n4. Email Processor (only for errors):');
@@ -96,10 +104,13 @@ function demonstrateLogProcessors(): void {
     processor: emailProcessor
   });
   emailLogger.info('This info will not trigger email'); // Won't send email
-  emailLogger.error('Critical system failure', { 
-    service: 'payment-gateway',
-    affectedUsers: 1500,
-    downtime: '2 minutes'
+  emailLogger.error({
+    message: 'Critical system failure',
+    data: { 
+      service: 'payment-gateway',
+      affectedUsers: 1500,
+      downtime: '2 minutes'
+    }
   });
 }
 
@@ -124,16 +135,28 @@ function demonstrateHybridProcessor(): void {
   });
 
   console.log('Logging with hybrid processor (goes to console, file, and MongoDB):');
-  hybridLogger.info('User authenticated successfully', { 
-    userId: 'user789',
-    loginTime: new Date().toISOString(),
-    ip: '192.168.1.100'
+  
+  // Using shared flow ID for related operations
+  const sessionFlowId = '20241220152000001';
+  
+  hybridLogger.info({
+    message: 'User authenticated successfully',
+    data: { 
+      userId: 'user789',
+      loginTime: new Date().toISOString(),
+      ip: '192.168.1.100'
+    },
+    flow: sessionFlowId
   });
 
-  hybridLogger.error('Database connection failed', {
-    database: 'user_db',
-    error: 'Connection timeout after 30s',
-    retryAttempt: 3
+  hybridLogger.error({
+    message: 'Database connection failed',
+    data: {
+      database: 'user_db',
+      error: 'Connection timeout after 30s',
+      retryAttempt: 3
+    },
+    flow: sessionFlowId
   });
 }
 
@@ -180,9 +203,12 @@ function demonstrateLoggerExtension(): void {
 
   console.log('Using extended DatabaseLogger with custom process method:');
   dbLogger.info('Custom logger with enhanced data');
-  dbLogger.error('Error with server information', { 
-    operation: 'user-creation',
-    duration: '1.5s'
+  dbLogger.error({
+    message: 'Error with server information',
+    data: { 
+      operation: 'user-creation',
+      duration: '1.5s'
+    }
   });
 }
 
@@ -216,17 +242,98 @@ function demonstrateDynamicProcessorSwitching(): void {
 }
 
 /**
+ * Demo showing flow-based logging across different processors
+ */
+function demonstrateFlowBasedProcessing(): void {
+  console.log('\n🌊 === FLOW-BASED PROCESSING DEMONSTRATION ===\n');
+
+  // Create different loggers with different processors
+  const consoleLogger = new Logger({ 
+    level: LogLevel.INFO, 
+    category: 'CONSOLE-FLOW', 
+    type: 'object',
+    processor: new ConsoleLogProcessor()
+  });
+
+  const fileLogger = new Logger({ 
+    level: LogLevel.INFO, 
+    category: 'FILE-FLOW', 
+    type: 'json',
+    processor: new FileLogProcessor('./logs/flow-demo.log')
+  });
+
+  const emailLogger = new Logger({ 
+    level: LogLevel.ERROR, 
+    category: 'EMAIL-FLOW', 
+    type: 'object',
+    processor: new EmailLogProcessor()
+  });
+
+  // Simulate a workflow that spans multiple processors
+  const workflowFlowId = '20241220152500001';
+
+  console.log('Simulating workflow across different processors:');
+  
+  consoleLogger.info({
+    message: 'Workflow started',
+    data: { 
+      workflowType: 'data-migration',
+      estimatedDuration: '30 minutes'
+    },
+    flow: workflowFlowId
+  });
+
+  fileLogger.info({
+    message: 'Data extraction phase',
+    data: { 
+      source: 'legacy-db',
+      recordCount: 10000,
+      phase: 'extraction'
+    },
+    flow: workflowFlowId
+  });
+
+  fileLogger.warn({
+    message: 'Performance degradation detected',
+    data: { 
+      currentSpeed: '50 records/sec',
+      expectedSpeed: '100 records/sec',
+      phase: 'transformation'
+    },
+    flow: workflowFlowId
+  });
+
+  emailLogger.error({
+    message: 'Critical error in data migration',
+    data: { 
+      errorType: 'data_corruption',
+      affectedRecords: 150,
+      phase: 'transformation',
+      requiresManualIntervention: true
+    },
+    flow: workflowFlowId
+  });
+
+  console.log('\n✨ Benefits of flow-based processing:');
+  console.log('- Track workflows across different output destinations');
+  console.log('- Correlate logs from different processors');
+  console.log('- Maintain context across logging layers');
+  console.log('- Enable advanced log analytics and monitoring');
+}
+
+/**
  * Main demo function
  */
 export function runProcessorDemo(): void {
-  console.log('🚀 Starting Log Processors Demo...\n');
+  console.log('🚀 Starting Enhanced Log Processors Demo...\n');
 
   demonstrateLogProcessors();
   demonstrateHybridProcessor();
   demonstrateLoggerExtension();
   demonstrateDynamicProcessorSwitching();
+  demonstrateFlowBasedProcessing();
 
-  console.log('\n🎯 Processors demo completed successfully!');
+  console.log('\n🎯 Enhanced processors demo completed successfully!');
   console.log('\nKey benefits of log processors:');
   console.log('- ✅ Separation of concerns (logging logic vs output logic)');
   console.log('- ✅ Easy to switch between different storage mechanisms');
@@ -234,6 +341,8 @@ export function runProcessorDemo(): void {
   console.log('- ✅ Extensible architecture for custom processors');
   console.log('- ✅ Runtime configuration changes');
   console.log('- ✅ Easy testing with mock processors');
+  console.log('- ✅ Flow-based tracking across different processors');
+  console.log('- ✅ Enhanced log structure with date and flow IDs');
 }
 
 // Run the demo if this file is executed directly

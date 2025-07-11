@@ -1,8 +1,9 @@
-import { LogLevel, LogEntry, LogOutputType, LogProcessor, LoggerConfig } from './types';
+import { LogLevel, LogEntry, LogOutputType, LogProcessor, LoggerConfig, LogInput, LogOptions } from './types';
 import { ConsoleLogProcessor } from './processors/ConsoleLogProcessor';
 
 /**
  * Simplified Logger class with configurable output format and pluggable processors
+ * Now supports flow-based logging with automatic flow ID generation and simplified input structure
  */
 export class Logger {
   private currentLevel: LogLevel;     // Current minimum log level to display
@@ -88,19 +89,50 @@ export class Logger {
   }
 
   /**
+   * Generates a unique flow ID with format YYYYMMDDDHHMMSSXX
+   * @returns A unique flow identifier
+   */
+  private generateFlowId(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    
+    return `${year}${month}${day}${hours}${minutes}${seconds}${random}`;
+  }
+
+  /**
+   * Normalizes input to LogOptions format
+   * @param input - The input to normalize (string, number, or LogOptions)
+   * @returns Normalized LogOptions object
+   */
+  private normalizeInput(input: LogInput): LogOptions {
+    if (typeof input === 'string' || typeof input === 'number') {
+      return {
+        message: String(input)
+      };
+    }
+    return input;
+  }
+
+  /**
    * Creates a log entry with all the necessary information
    * @param level - The log level (ERROR, WARN, DEBUG, INFO)
-   * @param message - The main log message
-   * @param data - Optional additional data/context from the caller
+   * @param options - The normalized log options
    * @returns Complete log entry object
    */
-  private createLogEntry(level: LogLevel, message: string, data?: any): LogEntry {
+  private createLogEntry(level: LogLevel, options: LogOptions): LogEntry {
     const entry: LogEntry = {
       level: this.getLevelName(level),
-      message,
-      timestamp: new Date().toISOString(),
+      message: options.message,
+      date: new Date().toISOString(),
+      flow: options.flow || this.generateFlowId(),
       category: this.category,
-      data
+      data: options.data
     };
 
     // Remove undefined fields to keep the log clean
@@ -123,58 +155,68 @@ export class Logger {
   /**
    * Internal method to log a message with the specified level
    * @param level - The log level to use
-   * @param message - The main log message
-   * @param data - Optional additional data/context
+   * @param input - The log input (string, number, or LogOptions object)
    */
-  private logWithLevel(level: LogLevel, message: string, data?: any): void {
+  private logWithLevel(level: LogLevel, input: LogInput): void {
     if (!this.shouldLog(level)) return;
 
-    const entry = this.createLogEntry(level, message, data);
+    const options = this.normalizeInput(input);
+    const entry = this.createLogEntry(level, options);
     this.process(entry, level);
   }
 
   /**
    * Logs an error message - highest priority, usually for critical issues
-   * @param message - The error message describing what went wrong
-   * @param data - Optional additional context (error objects, stack traces, etc.)
+   * @param input - The error input: string/number for simple message, or LogOptions object for complex logging
+   * @example
+   * logger.error('Simple error message');
+   * logger.error({ message: 'Database error', data: { code: 500, query: 'SELECT * FROM users' }, flow: 'auth-flow' });
    */
-  error(message: string, data?: any): void {
-    this.logWithLevel(LogLevel.ERROR, message, data);
+  error(input: LogInput): void {
+    this.logWithLevel(LogLevel.ERROR, input);
   }
 
   /**
    * Logs a warning message - for potentially harmful situations
-   * @param message - The warning message describing the issue
-   * @param data - Optional additional context (config values, thresholds, etc.)
+   * @param input - The warning input: string/number for simple message, or LogOptions object for complex logging
+   * @example
+   * logger.warn('Deprecated function used');
+   * logger.warn({ message: 'Memory usage high', data: { usage: '85%', threshold: '80%' } });
    */
-  warn(message: string, data?: any): void {
-    this.logWithLevel(LogLevel.WARN, message, data);
+  warn(input: LogInput): void {
+    this.logWithLevel(LogLevel.WARN, input);
   }
 
   /**
    * Logs a debug message - detailed information for diagnosing problems
-   * @param message - The debug message with technical details
-   * @param data - Optional additional context (variables, state, parameters, etc.)
+   * @param input - The debug input: string/number for simple message, or LogOptions object for complex logging
+   * @example
+   * logger.debug('Processing user request');
+   * logger.debug({ message: 'Variable state', data: { userId: 123, step: 'validation' } });
    */
-  debug(message: string, data?: any): void {
-    this.logWithLevel(LogLevel.DEBUG, message, data);
+  debug(input: LogInput): void {
+    this.logWithLevel(LogLevel.DEBUG, input);
   }
 
   /**
    * Logs an info message - general information about application flow
-   * @param message - The informational message
-   * @param data - Optional additional context (user data, results, etc.)
+   * @param input - The info input: string/number for simple message, or LogOptions object for complex logging
+   * @example
+   * logger.info('User logged in successfully');
+   * logger.info({ message: 'User session started', data: { userId: 'user123', sessionId: 'sess456' } });
    */
-  info(message: string, data?: any): void {
-    this.logWithLevel(LogLevel.INFO, message, data);
+  info(input: LogInput): void {
+    this.logWithLevel(LogLevel.INFO, input);
   }
 
   /**
    * Logs a general message - alias for info() method for compatibility
-   * @param message - The log message
-   * @param data - Optional additional context (user data, results, etc.)
+   * @param input - The log input: string/number for simple message, or LogOptions object for complex logging
+   * @example
+   * logger.log('General message');
+   * logger.log({ message: 'Process completed', data: { duration: '2.5s', items: 150 } });
    */
-  log(message: string, data?: any): void {
-    this.logWithLevel(LogLevel.INFO, message, data);
+  log(input: LogInput): void {
+    this.logWithLevel(LogLevel.INFO, input);
   }
 } 

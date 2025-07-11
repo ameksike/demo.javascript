@@ -6,7 +6,9 @@ export type {
   LogOutputType, 
   LogEntry, 
   LogProcessor, 
-  LoggerConfig 
+  LoggerConfig,
+  LogInput,
+  LogOptions
 } from './types';
 export { LogLevel } from './types';
 
