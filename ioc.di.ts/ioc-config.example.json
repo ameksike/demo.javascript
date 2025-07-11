@@ -1,0 +1,79 @@
+{
+  "services": [
+    {
+      "key": "logger",
+      "target": "Logger",
+      "type": "class",
+      "lifetime": "singleton",
+      "args": [
+        {
+          "level": 4,
+          "category": "APP"
+        }
+      ]
+    },
+    {
+      "key": "databaseService",
+      "target": "DatabaseService",
+      "type": "class",
+      "lifetime": "singleton",
+      "args": [
+        "postgresql://localhost:5432/myapp",
+        25
+      ]
+    },
+    {
+      "key": "emailService",
+      "target": "EmailService",
+      "type": "class",
+      "lifetime": "singleton",
+      "args": [
+        "smtp.gmail.com",
+        587
+      ],
+      "dependencies": {
+        "logger": {
+          "key": "logger",
+          "target": "Logger",
+          "type": "class"
+        }
+      }
+    },
+    {
+      "key": "userService",
+      "target": "UserService",
+      "type": "class",
+      "lifetime": "transient",
+      "dependencies": {
+        "dbService": {
+          "key": "databaseService",
+          "target": "DatabaseService",
+          "type": "class"
+        },
+        "emailService": {
+          "key": "emailService",
+          "target": "EmailService",
+          "type": "class"
+        },
+        "logger": {
+          "key": "logger",
+          "target": "Logger",
+          "type": "class"
+        }
+      }
+    },
+    {
+      "key": "appConfig",
+      "target": {
+        "version": "1.0.0",
+        "environment": "production",
+        "features": {
+          "enableLogging": true,
+          "enableCache": true,
+          "maxConnections": 100
+        }
+      },
+      "type": "value"
+    }
+  ]
+} 
