@@ -76,6 +76,9 @@ import { Logger, LogLevel, LoggerConfig } from './tools/log';
         ]
       },
       
+      // Greeter alias for implicit dependency injection (lowercase name)
+      { key: 'greeter', target: 'Greeter', type: 'alias' },
+      
       { 
         key: 'Calculator',
         target: 'Calculator', 
@@ -104,6 +107,18 @@ import { Logger, LogLevel, LoggerConfig } from './tools/log';
       // BusinessService aliases for different contexts
       { key: 'orderProcessor', target: 'businessService', type: 'alias' },
       { key: 'customerService', target: 'businessService', type: 'alias' },
+      
+      // App with Awilix-compatible implicit dependencies - uses destructuring pattern
+      { 
+        key: 'app',
+        target: 'App', 
+        type: 'class', 
+        lifetime: 'singleton', 
+        path: '../../components'
+        // NO dependencies array - Awilix native implicit dependency injection
+        // Constructor: constructor({ greeter }) - destructuring enables implicit DI
+        // Service 'greeter' will be resolved automatically from container
+      },
       
       // Value registrations
       { key: 'myVal', target: 125, type: 'value' },
@@ -199,6 +214,18 @@ import { Logger, LogLevel, LoggerConfig } from './tools/log';
     console.log(`  Subtraction: ${calculator.subtract(50, 23)}`);
     console.log(`  Multiplication: ${calculator.multiply(6, 9)}`);
     console.log(`  Division: ${calculator.divide(144, 12)}`);
+
+    /**
+     * Test App component with Awilix-compatible implicit dependencies
+     */
+    console.log('\n🎯 Testing App with Awilix-Compatible Implicit Dependencies:');
+    const app = manager.resolve('app') as any;
+    console.log('  App resolved successfully with Awilix native implicit injection');
+    console.log('  Pattern: constructor({ greeter }) - destructuring for implicit DI');
+    console.log('  Service: greeter → resolved from container automatically');
+    console.log('  Running app.run() method:');
+    app.run();
+    console.log('  ✅ App executed successfully using Awilix implicit dependency injection!');
 
     /**
      * Test enhanced configuration resolution
@@ -338,9 +365,11 @@ import { Logger, LogLevel, LoggerConfig } from './tools/log';
     const serviceKeys = registeredKeys.filter(key => key.toLowerCase().includes('service'));
     const loggerKeys = registeredKeys.filter(key => key.toLowerCase().includes('logger'));
     const aliasKeys = registeredKeys.filter(key => ['orderProcessor', 'customerService', 'mainLogger', 'systemLogger', 'primaryLogger', 'otherVal'].includes(key));
+    const appKeys = registeredKeys.filter(key => key.toLowerCase().includes('app'));
     
     console.log(`  Business Services: ${serviceKeys.length}`);
     console.log(`  Logger Instances: ${loggerKeys.length}`);
+    console.log(`  Application Components: ${appKeys.length}`);
     console.log(`  Aliases: ${aliasKeys.length}`);
     
     console.log('\n  All Registered Keys:');
@@ -364,6 +393,7 @@ import { Logger, LogLevel, LoggerConfig } from './tools/log';
     console.log('  ✅ Transient instances with zero explicit imports');
     console.log('  ✅ Performance monitoring and optimization');
     console.log('  ✅ JSON-serializable dependency injection');
+    console.log('  ✅ Implicit dependency injection (Awilix native destructuring pattern)');
     
     console.log('\n📊 Configuration Pattern Comparison:');
     console.log('  ❌ Old: { key: "logger", target: () => new Logger(...), type: "function" }');
@@ -374,7 +404,9 @@ import { Logger, LogLevel, LoggerConfig } from './tools/log';
     console.log('  ✅ New: Zero imports, IoC manages all dependencies');
     console.log('  ❌ Old: Tight coupling between components');
     console.log('  ✅ New: Loose coupling with transitive dependency injection');
-    console.log('  🎯 ACHIEVEMENT: Complete JSON/MongoDB serializable configuration!');
+    console.log('  ❌ Old: constructor(private greeter: Greeter) - individual parameters');
+    console.log('  ✅ New: constructor({ greeter }) - Awilix destructuring pattern');
+    console.log('  🎯 ACHIEVEMENT: Complete JSON/MongoDB serializable + Awilix native patterns!');
     
     console.log('\n✅ Enhanced IoC Demo completed successfully!');
     console.log('🎉 All IoC features working correctly with production-ready patterns!');

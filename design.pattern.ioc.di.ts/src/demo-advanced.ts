@@ -1,304 +1,135 @@
 import { IoC, RegistrationConfig } from './tools/ioc';
 import { Logger, LogLevel } from './tools/log';
-import { BusinessService } from './components/BusinessService';
 
 /**
- * Advanced Configuration Demo - Complex Dependency Injection with New Syntax
+ * Advanced IoC Demo - Complex Dependency Injection Patterns
  * 
- * This demo showcases the most advanced IoC container features:
- * - Reference resolution with consistent `{ target: "name", type: "ref" }` syntax
- * - Inline dependency configuration for complex nested structures
- * - Order-dependent reference resolution capabilities
- * - Mixed reference and inline dependency patterns
- * - Complex business workflow orchestration
- * - Enterprise-grade dependency management
+ * This demo showcases advanced IoC container capabilities:
+ * - Multiple lifecycle management (singleton, transient, scoped)
+ * - Factory functions and complex configurations
+ * - Service unregistration and dynamic reconfiguration
+ * - Multiple logger configurations with different levels
  * - JSON-serializable configuration patterns
+ * - Complex object dependencies and service maps
+ * - Flow-based logging with structured data
  * 
- * Complexity Level: ⭐⭐⭐⭐ (Expert)
+ * Complexity Level: ⭐⭐⭐ (Advanced)
  */
 (async function main(): Promise<void> {
-  console.log('🚀 Advanced Configuration Demo - Complex Dependency Injection with New Syntax\n');
-  
+  console.log('🚀 Advanced IoC Demo - Complex Dependency Injection Patterns\n');
+
   try {
-    // Create IoC container for most advanced scenarios
-    const manager = new IoC();
-    
+    // Create IoC container for advanced scenarios
+    const container = new IoC();
+
     /**
-     * Advanced configuration demonstrating the new consistent syntax
-     * with reference resolution and inline dependencies
+     * Advanced registration configurations demonstrating complex IoC patterns
      */
     const configs: RegistrationConfig[] = [
-      // ========================================
-      // FOUNDATION SERVICES - Core Dependencies
-      // ========================================
-      
-      // Base logger configurations with different levels
+      // Multiple logger configurations with different levels and categories
       { 
         key: 'logger', // Default logger for components
         target: Logger, 
         type: 'class', 
         lifetime: 'singleton',
-        args: [{ level: LogLevel.INFO, category: 'BASE' }]
+        args: [{ level: LogLevel.DEBUG, category: 'SYSTEM' }]
       },
       { 
-        key: 'baseLogger',
+        key: 'systemLogger', 
         target: Logger, 
         type: 'class', 
         lifetime: 'singleton',
-        args: [{ level: LogLevel.INFO, category: 'BASE' }]
+        args: [{ level: LogLevel.DEBUG, category: 'SYSTEM' }]
       },
-      
       { 
-        key: 'auditLogger',
+        key: 'errorLogger', 
+        target: Logger, 
+        type: 'class', 
+        lifetime: 'singleton',
+        args: [{ level: LogLevel.ERROR, category: 'ERRORS' }]
+      },
+      { 
+        key: 'auditLogger', 
         target: Logger, 
         type: 'class', 
         lifetime: 'singleton',
         args: [{ level: LogLevel.ALL, category: 'AUDIT' }]
       },
-      
       { 
-        key: 'performanceLogger',
+        key: 'apiLogger', 
         target: Logger, 
         type: 'class', 
         lifetime: 'singleton',
-        args: [{ level: LogLevel.DEBUG, category: 'PERFORMANCE' }]
+        args: [{ level: LogLevel.INFO, category: 'API' }]
       },
-      
+
+      // Component registrations with different lifecycles
       { 
-        key: 'errorLogger',
-        target: Logger, 
-        type: 'class', 
-        lifetime: 'singleton',
-        args: [{ level: LogLevel.ERROR, category: 'ERROR_HANDLING' }]
-      },
-      
-      // ========================================
-      // CORE COMPONENTS - Reference Dependencies
-      // ========================================
-      
-      // Greeter with reference to existing logger
-      { 
-        target: 'Greeter',
-        type: 'class', 
-        lifetime: 'transient',
-        path: '../../components'
-      },
-      
-      // Calculator with reference to existing logger
-      { 
-        target: 'Calculator',
-        type: 'class', 
-        lifetime: 'singleton',
-        path: '../../components'
-      },
-      
-      // ========================================
-      // BUSINESS SERVICES - Complex Dependencies
-      // ========================================
-      
-      // Basic BusinessService with factory function approach
-      { 
-        key: 'businessService',
-        target: (cradle: any) => new BusinessService({ 
-          calculator: cradle.Calculator, 
-          greeter: cradle.Greeter, 
-          logger: cradle.logger 
-        }),
-        type: 'function',
-        lifetime: 'transient'
-      },
-      
-      // Enhanced BusinessService with mixed dependencies
-      { 
-        key: 'enhancedBusinessService',
-        target: 'BusinessService',
+        key: 'transientGreeter',
+        target: 'Greeter', 
         type: 'class',
-        lifetime: 'transient',
+        lifetime: 'transient', 
         path: '../../components',
         dependencies: [
-          { target: 'calculator', type: 'ref' },      // Reference to existing calculator
-          { target: 'greeter', type: 'ref' },         // Reference to existing greeter
-          
-          // NEW: Inline dependency configuration
-          { 
-            key: 'specialLogger',
-            target: Logger,
-            type: 'class',
-            lifetime: 'singleton',
-            args: [{ level: LogLevel.ERROR, category: 'SPECIAL_OPS' }]
-          }
+          { target: 'logger', type: 'ref', key: 'logger' }
         ]
       },
-      
-      // Premium BusinessService with deeply nested dependencies
       { 
-        key: 'premiumBusinessService',
-        target: 'BusinessService',
+        key: 'singletonGreeter',
+        target: 'Greeter', 
         type: 'class',
-        lifetime: 'transient',
+        lifetime: 'singleton', 
         path: '../../components',
         dependencies: [
-          // Enhanced calculator with performance monitoring
-          { 
-            key: 'premiumCalculator',
-            target: 'Calculator',
-            type: 'class',
-            lifetime: 'singleton',
-            path: '../../components',
-            dependencies: [
-              { target: 'performanceLogger', type: 'ref' }   // Nested reference
-            ]
-          },
-          
-          // Enhanced greeter with audit logging
-          { 
-            key: 'premiumGreeter',
-            target: 'Greeter',
-            type: 'class',
-            lifetime: 'transient',
-            path: '../../components',
-            dependencies: [
-              { target: 'auditLogger', type: 'ref' }         // Nested reference
-            ]
-          },
-          
-          // Custom logger for premium operations
-          { 
-            key: 'premiumLogger',
-            target: Logger,
-            type: 'class',
-            lifetime: 'singleton',
-            args: [{ level: LogLevel.ALL, category: 'PREMIUM' }]
-          }
+          { target: 'logger', type: 'ref', key: 'logger' }
         ]
       },
-      
-      // Enterprise BusinessService with maximum complexity
       { 
-        key: 'enterpriseBusinessService',
-        target: 'BusinessService',
+        key: 'scopedCalculator',
+        target: 'Calculator', 
         type: 'class',
-        lifetime: 'transient',
+        lifetime: 'scoped', 
         path: '../../components',
         dependencies: [
-          // Enterprise calculator with error handling
-          { 
-            key: 'enterpriseCalculator',
-            target: 'Calculator',
-            type: 'class',
-            lifetime: 'singleton',
-            path: '../../components',
-            dependencies: [
-              // Multi-level nested dependency
-              { 
-                key: 'enterpriseCalculatorLogger',
-                target: Logger,
-                type: 'class',
-                lifetime: 'singleton',
-                args: [{ level: LogLevel.DEBUG, category: 'ENTERPRISE_CALC' }]
-              }
-            ]
-          },
-          
-          // Enterprise greeter with full audit trail
-          { 
-            key: 'enterpriseGreeter',
-            target: 'Greeter',
-            type: 'class',
-            lifetime: 'singleton',
-            path: '../../components',
-            dependencies: [
-              { target: 'auditLogger', type: 'ref' },        // Reference to existing audit logger
-              { target: 'errorLogger', type: 'ref' }         // Reference to existing error logger
-            ]
-          },
-          
-          // Enterprise logger with comprehensive logging
-          { 
-            key: 'enterpriseLogger',
-            target: Logger,
-            type: 'class',
-            lifetime: 'singleton',
-            args: [{ level: LogLevel.ALL, category: 'ENTERPRISE_SUITE' }]
-          }
+          { target: 'logger', type: 'ref', key: 'logger' }
         ]
       },
-      
-      // ========================================
-      // SERVICE ALIASES - Business Contexts
-      // ========================================
-      
-      // Service aliases for different business contexts
-      { key: 'orderProcessingService', target: 'businessService', type: 'alias' },
-      { key: 'customerManagementService', target: 'enhancedBusinessService', type: 'alias' },
-      { key: 'enterpriseService', target: 'premiumBusinessService', type: 'alias' },
-      { key: 'corporateService', target: 'enterpriseBusinessService', type: 'alias' },
-      
-      // Logger aliases for different operational contexts
-      { key: 'mainLogger', target: 'baseLogger', type: 'alias' },
-      { key: 'systemLogger', target: 'auditLogger', type: 'alias' },
-      { key: 'metricsLogger', target: 'performanceLogger', type: 'alias' },
-      { key: 'faultLogger', target: 'errorLogger', type: 'alias' },
-      
-      // Component aliases for different usage patterns
-      { key: 'primaryCalculator', target: 'calculator', type: 'alias' },
-      { key: 'primaryGreeter', target: 'greeter', type: 'alias' },
-      
-      // ========================================
-      // CONFIGURATION OBJECTS - System Settings
-      // ========================================
-      
-      // Application configuration
       { 
-        key: 'serviceConfig',
-        target: {
-          version: '3.0.0',
-          environment: 'production',
+        key: 'singletonCalculator',
+        target: 'Calculator', 
+        type: 'class',
+        lifetime: 'singleton', 
+        path: '../../components',
+        dependencies: [
+          { target: 'logger', type: 'ref', key: 'logger' }
+        ]
+      },
+
+      // Complex configuration objects
+      { 
+        key: 'appConfig', 
+        target: { 
+          version: '2.0.0', 
+          debug: true,
           features: {
-            advancedIoC: true,
-            references: true,
-            inlineDependencies: true,
-            orderDependentResolution: true,
-            nestedDependencies: true,
-            aliasSupport: true
+            logging: true,
+            monitoring: true,
+            analytics: false
           },
-          performance: {
-            maxConcurrentServices: 100,
-            serviceTimeout: 30000,
-            logBufferSize: 1000
+          database: {
+            host: 'localhost',
+            port: 5432,
+            name: 'app_db',
+            pool: {
+              min: 5,
+              max: 20,
+              idleTimeoutMillis: 30000
+            }
           }
-        },
-        type: 'value'
+        }, 
+        type: 'value' 
       },
-      
-      // Database configuration
-      { 
-        key: 'databaseConfig',
-        target: {
-          host: 'localhost',
-          port: 5432,
-          database: 'enterprise_db',
-          pool: {
-            min: 10,
-            max: 50,
-            idleTimeoutMillis: 30000
-          },
-          ssl: {
-            enabled: true,
-            rejectUnauthorized: false
-          }
-        },
-        type: 'value'
-      },
-      
-      // Configuration aliases for different access patterns
-      { key: 'appConfig', target: 'serviceConfig', type: 'alias' },
-      { key: 'dbConfig', target: 'databaseConfig', type: 'alias' },
-      
-      // ========================================
-      // FACTORY FUNCTIONS - Dynamic Values
-      // ========================================
-      
+
       // Factory functions for dynamic values
       { 
         key: 'timestampFactory', 
@@ -306,240 +137,321 @@ import { BusinessService } from './components/BusinessService';
         type: 'value' 
       },
       { 
-        key: 'correlationIdFactory', 
-        target: () => `corr-${Math.random().toString(36).substr(2, 12)}`, 
+        key: 'uuidFactory', 
+        target: () => `uuid-${Math.random().toString(36).substr(2, 9)}`, 
         type: 'value' 
       },
       { 
-        key: 'sessionIdFactory', 
-        target: () => `sess-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`, 
+        key: 'randomNumberFactory', 
+        target: () => Math.floor(Math.random() * 1000), 
+        type: 'value' 
+      },
+
+      // Service discovery map
+      { 
+        key: 'serviceRegistry', 
+        target: {
+          loggers: ['systemLogger', 'errorLogger', 'auditLogger', 'apiLogger'],
+          components: ['transientGreeter', 'singletonGreeter', 'scopedCalculator', 'singletonCalculator'],
+          factories: ['timestampFactory', 'uuidFactory', 'randomNumberFactory'],
+          configs: ['appConfig']
+        }, 
+        type: 'value' 
+      },
+
+      // Complex nested configuration
+      { 
+        key: 'serviceMap', 
+        target: {
+          primary: {
+            logger: 'systemLogger',
+            greeter: 'singletonGreeter',
+            calculator: 'singletonCalculator'
+          },
+          secondary: {
+            logger: 'errorLogger',
+            greeter: 'transientGreeter',
+            calculator: 'scopedCalculator'
+          },
+          audit: {
+            logger: 'auditLogger'
+          },
+          api: {
+            logger: 'apiLogger'
+          }
+        }, 
+        type: 'value' 
+      },
+
+      // Environment-specific configurations
+      { 
+        key: 'environment', 
+        target: {
+          name: 'development',
+          settings: {
+            logLevel: LogLevel.DEBUG,
+            enableMetrics: true,
+            enableTracing: true,
+            cacheSize: 1000
+          }
+        }, 
         type: 'value' 
       }
     ];
-    
+
     /**
-     * Register all advanced dependencies with new syntax
+     * Register all advanced dependencies
      */
-    console.log('📦 Registering dependencies with advanced configuration syntax...');
-    await manager.register(configs);
-    console.log('✅ All dependencies registered successfully!\n');
-    
+    console.log('📦 Registering advanced dependencies...');
+    await container.register(configs);
+    console.log('✅ Advanced dependencies registered successfully!\n');
+
     /**
-     * Test reference resolution capabilities
+     * Test different lifecycle behaviors
      */
-    console.log('🔍 Testing Reference Resolution:');
+    console.log('🔧 Testing Lifecycle Behaviors:');
     
-    // Test basic services with references
-    const greeter = manager.resolve('greeter') as any;
-    const calculator = manager.resolve('calculator') as any;
+    // Singleton behavior
+    const logger1 = container.resolve<Logger>('systemLogger');
+    const logger2 = container.resolve<Logger>('systemLogger');
+    console.log(`Singleton logger (same instance): ${logger1 === logger2}`);
     
-    console.log('  Basic Services with References:');
-    console.log(`    Greeter: ${greeter.greet('Advanced Reference Demo')}`);
-    console.log(`    Calculator: ${calculator.add(15, 25)} (Addition)`);
-    console.log(`    Calculator: ${calculator.multiply(4, 7)} (Multiplication)`);
+    const singletonGreeter1 = container.resolve('singletonGreeter') as any;
+    const singletonGreeter2 = container.resolve('singletonGreeter') as any;
+    console.log(`Singleton greeter (same instance): ${singletonGreeter1 === singletonGreeter2}`);
     
-    // Test business services with mixed dependencies
-    const businessService = manager.resolve('businessService') as any;
-    const enhancedService = manager.resolve('enhancedBusinessService') as any;
-    const premiumService = manager.resolve('premiumBusinessService') as any;
-    const enterpriseService = manager.resolve('enterpriseBusinessService') as any;
+    // Transient behavior
+    const transientGreeter1 = container.resolve('transientGreeter') as any;
+    const transientGreeter2 = container.resolve('transientGreeter') as any;
+    console.log(`Transient greeter (different instances): ${transientGreeter1 !== transientGreeter2}`);
     
-    console.log('\n  Business Services with Complex Dependencies:');
-    console.log(`    BusinessService: ${businessService !== undefined ? 'Resolved' : 'Failed'}`);
-    console.log(`    EnhancedBusinessService: ${enhancedService !== undefined ? 'Resolved' : 'Failed'}`);
-    console.log(`    PremiumBusinessService: ${premiumService !== undefined ? 'Resolved' : 'Failed'}`);
-    console.log(`    EnterpriseBusinessService: ${enterpriseService !== undefined ? 'Resolved' : 'Failed'}`);
-    
+    // Scoped behavior
+    const scopedCalc1 = container.resolve('scopedCalculator') as any;
+    const scopedCalc2 = container.resolve('scopedCalculator') as any;
+    console.log(`Scoped calculator (same instance): ${scopedCalc1 === scopedCalc2}`);
+
     /**
-     * Test alias resolution with comprehensive coverage
+     * Test multiple logger configurations
      */
-    console.log('\n🏷️ Testing Comprehensive Alias Resolution:');
+    console.log('\n📝 Testing Multiple Logger Configurations:');
     
-    // Service aliases
-    const orderProcessor = manager.resolve('orderProcessingService') as any;
-    const customerManager = manager.resolve('customerManagementService') as any;
-    const enterpriseProcessor = manager.resolve('enterpriseService') as any;
-    const corporateService = manager.resolve('corporateService') as any;
+    const systemLogger = container.resolve<Logger>('systemLogger');
+    const errorLogger = container.resolve<Logger>('errorLogger');
+    const auditLogger = container.resolve<Logger>('auditLogger');
+    const apiLogger = container.resolve<Logger>('apiLogger');
     
-    console.log('  Service Aliases:');
-    console.log(`    OrderProcessingService: ${orderProcessor !== undefined ? 'Available' : 'Missing'}`);
-    console.log(`    CustomerManagementService: ${customerManager !== undefined ? 'Available' : 'Missing'}`);
-    console.log(`    EnterpriseService: ${enterpriseProcessor !== undefined ? 'Available' : 'Missing'}`);
-    console.log(`    CorporateService: ${corporateService !== undefined ? 'Available' : 'Missing'}`);
+    console.log('System logger (DEBUG level):');
+    systemLogger.debug('🐛 Debug message visible');
+    systemLogger.info('ℹ️ Info message visible');
+    systemLogger.warn('⚠️ Warning message visible');
+    systemLogger.error('❌ Error message visible');
     
-    // Logger aliases
-    const mainLogger = manager.resolve<Logger>('mainLogger');
-    const systemLogger = manager.resolve<Logger>('systemLogger');
-    const metricsLogger = manager.resolve<Logger>('metricsLogger');
-    const faultLogger = manager.resolve<Logger>('faultLogger');
+    console.log('\nError logger (ERROR level only):');
+    errorLogger.debug('🐛 Debug message hidden');
+    errorLogger.info('ℹ️ Info message hidden');
+    errorLogger.warn('⚠️ Warning message hidden');
+    errorLogger.error('❌ Error message visible');
     
-    console.log('\n  Logger Aliases:');
-    mainLogger.info('✅ Main logger alias working correctly');
-    systemLogger.info('✅ System logger alias working correctly');
-    metricsLogger.debug('✅ Metrics logger alias working correctly');
-    faultLogger.error('✅ Fault logger alias working correctly');
-    
+    console.log('\nAudit logger (ALL levels):');
+    auditLogger.debug('🐛 Audit debug message visible');
+    auditLogger.info('ℹ️ Audit info message visible');
+    auditLogger.warn('⚠️ Audit warning message visible');
+    auditLogger.error('❌ Audit error message visible');
+
     /**
-     * Test complex business workflows with enterprise patterns
+     * Test complex configuration resolution
      */
-    console.log('\n💼 Testing Complex Business Workflows:');
+    console.log('\n⚙️ Testing Complex Configuration Resolution:');
     
-    // Prepare test data
-    const orderItems = [
-      { name: 'Enterprise Software License', quantity: 1, price: 999.99 },
-      { name: 'Professional Support Package', quantity: 1, price: 299.99 },
-      { name: 'Training Session', quantity: 2, price: 150.00 }
-    ];
-    
-    // Test order processing with different service levels
-    console.log('  Order Processing Across Service Levels:');
-    
-    const basicOrder = orderProcessor.processCustomerOrder('Basic Corp', orderItems);
-    console.log(`    Basic Service - Customer: ${basicOrder.customer}, Total: $${basicOrder.total.toFixed(2)}`);
-    
-    const enhancedOrder = customerManager.processCustomerOrder('Enhanced Corp', orderItems);
-    console.log(`    Enhanced Service - Customer: ${enhancedOrder.customer}, Total: $${enhancedOrder.total.toFixed(2)}`);
-    
-    const premiumOrder = enterpriseProcessor.processCustomerOrder('Premium Corp', orderItems);
-    console.log(`    Premium Service - Customer: ${premiumOrder.customer}, Total: $${premiumOrder.total.toFixed(2)}`);
-    
-    // Test enterprise workflow with comprehensive features
-    console.log('\n  Enterprise Workflow Orchestration:');
-    
-    const enterpriseWorkflow = corporateService.executeBusinessWorkflow(
-      'Fortune 500 Corporation',
-      orderItems,
-      'Outstanding enterprise solution with comprehensive features!',
-      10
-    );
-    
-    console.log(`    Welcome: ${enterpriseWorkflow.welcome}`);
-    console.log(`    Order Total: $${enterpriseWorkflow.order.total.toFixed(2)}`);
-    console.log(`    Processing Time: ${enterpriseWorkflow.order.processingTime.toFixed(2)}ms`);
-    console.log(`    Feedback Sentiment: ${enterpriseWorkflow.feedback.sentiment}`);
-    console.log(`    Feedback Score: ${enterpriseWorkflow.feedback.score}/10`);
-    
+    const appConfig = container.resolve<any>('appConfig');
+    console.log(`App version: ${appConfig.version}`);
+    console.log(`Debug mode: ${appConfig.debug}`);
+    console.log(`Features enabled: ${Object.keys(appConfig.features).filter(k => appConfig.features[k]).join(', ')}`);
+    console.log(`Database: ${appConfig.database.name}@${appConfig.database.host}:${appConfig.database.port}`);
+    console.log(`Connection pool: ${appConfig.database.pool.min}-${appConfig.database.pool.max} connections`);
+
     /**
-     * Test configuration resolution and factory functions
-     */
-    console.log('\n⚙️ Testing Configuration Resolution:');
-    
-    const config = manager.resolve<any>('appConfig');
-    const dbConfig = manager.resolve<any>('dbConfig');
-    
-    console.log('  Application Configuration:');
-    console.log(`    Version: ${config.version}`);
-    console.log(`    Environment: ${config.environment}`);
-    console.log(`    Advanced IoC: ${config.features.advancedIoC}`);
-    console.log(`    References: ${config.features.references}`);
-    console.log(`    Inline Dependencies: ${config.features.inlineDependencies}`);
-    console.log(`    Nested Dependencies: ${config.features.nestedDependencies}`);
-    console.log(`    Max Concurrent Services: ${config.performance.maxConcurrentServices}`);
-    
-    console.log('\n  Database Configuration:');
-    console.log(`    Host: ${dbConfig.host}:${dbConfig.port}`);
-    console.log(`    Database: ${dbConfig.database}`);
-    console.log(`    Pool Size: ${dbConfig.pool.min}-${dbConfig.pool.max}`);
-    console.log(`    SSL Enabled: ${dbConfig.ssl.enabled}`);
-    
-    /**
-     * Test factory functions for dynamic values
+     * Test factory functions
      */
     console.log('\n🏭 Testing Factory Functions:');
     
-    const timestampFactory = manager.resolve<() => string>('timestampFactory');
-    const correlationIdFactory = manager.resolve<() => string>('correlationIdFactory');
-    const sessionIdFactory = manager.resolve<() => string>('sessionIdFactory');
+    const timestampFactory = container.resolve<() => string>('timestampFactory');
+    const uuidFactory = container.resolve<() => string>('uuidFactory');
+    const randomNumberFactory = container.resolve<() => number>('randomNumberFactory');
     
-    console.log(`  Timestamp: ${timestampFactory()}`);
-    console.log(`  Correlation ID: ${correlationIdFactory()}`);
-    console.log(`  Session ID: ${sessionIdFactory()}`);
+    console.log(`Current timestamp: ${timestampFactory()}`);
+    console.log(`Generated UUID: ${uuidFactory()}`);
+    console.log(`Random number: ${randomNumberFactory()}`);
     
     // Show factory functions produce different values
-    console.log('\n  Factory Function Variability:');
-    console.log(`  New Timestamp: ${timestampFactory()}`);
-    console.log(`  New Correlation ID: ${correlationIdFactory()}`);
-    console.log(`  New Session ID: ${sessionIdFactory()}`);
-    
+    console.log(`Another timestamp: ${timestampFactory()}`);
+    console.log(`Another UUID: ${uuidFactory()}`);
+    console.log(`Another random number: ${randomNumberFactory()}`);
+
     /**
-     * Comprehensive dependency analysis
+     * Test service discovery and registry
      */
-    console.log('\n📊 Comprehensive Dependency Analysis:');
+    console.log('\n🗺️ Testing Service Discovery:');
     
-    const registeredKeys = manager.getRegisteredKeys();
-    console.log(`  Total Registered Dependencies: ${registeredKeys.length}`);
-    
-    // Categorize dependencies
-    const serviceKeys = registeredKeys.filter(key => key.toLowerCase().includes('service'));
-    const loggerKeys = registeredKeys.filter(key => key.toLowerCase().includes('logger'));
-    const aliasKeys = registeredKeys.filter(key => {
-      const resolved = manager.resolve(key);
-      return typeof resolved === 'object' && resolved !== null;
+    const serviceRegistry = container.resolve<any>('serviceRegistry');
+    console.log('Service Registry Contents:');
+    Object.keys(serviceRegistry).forEach(category => {
+      console.log(`  ${category}: ${serviceRegistry[category].length} services`);
+      serviceRegistry[category].forEach((service: string) => {
+        console.log(`    ✓ ${service}`);
+      });
     });
-    const factoryKeys = registeredKeys.filter(key => key.toLowerCase().includes('factory'));
-    const configKeys = registeredKeys.filter(key => key.toLowerCase().includes('config'));
     
-    console.log(`  Business Services: ${serviceKeys.length}`);
-    console.log(`  Logger Instances: ${loggerKeys.length}`);
-    console.log(`  Configuration Objects: ${configKeys.length}`);
-    console.log(`  Factory Functions: ${factoryKeys.length}`);
-    console.log(`  Component Aliases: ${aliasKeys.length}`);
-    
+    const serviceMap = container.resolve<any>('serviceMap');
+    console.log('\nService Map Configuration:');
+    Object.keys(serviceMap).forEach(env => {
+      console.log(`  ${env}:`);
+      Object.keys(serviceMap[env]).forEach(service => {
+        console.log(`    ${service}: ${serviceMap[env][service]}`);
+      });
+    });
+
     /**
-     * Performance and architectural summary
+     * Test flow-based logging with structured data
      */
-    console.log('\n🎯 Advanced Configuration Demo Summary:');
-    console.log('  ✅ Consistent reference syntax `{ target: "name", type: "ref" }`');
-    console.log('  ✅ Inline dependency configuration for complex scenarios');
-    console.log('  ✅ Order-dependent reference resolution working correctly');
-    console.log('  ✅ Mixed reference and inline dependency patterns');
-    console.log('  ✅ Multi-level nested dependency trees');
-    console.log('  ✅ Comprehensive alias support for flexible contexts');
-    console.log('  ✅ Complex business workflow orchestration');
-    console.log('  ✅ Enterprise-grade configuration management');
-    console.log('  ✅ Factory functions for dynamic value generation');
-    console.log('  ✅ JSON-serializable configuration patterns');
-    console.log('  ✅ Production-ready dependency injection architecture');
+    console.log('\n🌊 Testing Flow-based Logging:');
     
+    const workflowFlowId = '20241220-ADV-001';
+    
+    systemLogger.info({
+      message: 'Advanced workflow started',
+      data: {
+        workflowId: workflowFlowId,
+        type: 'configuration-migration',
+        initiatedBy: 'system',
+        priority: 'high'
+      },
+      flow: workflowFlowId
+    });
+    
+    auditLogger.info({
+      message: 'Configuration backup created',
+      data: {
+        backupId: 'backup-001',
+        timestamp: Date.now(),
+        configVersion: appConfig.version,
+        location: '/tmp/config-backup'
+      },
+      flow: workflowFlowId
+    });
+    
+    errorLogger.error({
+      message: 'Migration validation failed',
+      data: {
+        validationErrors: ['invalid-database-url', 'missing-api-key'],
+        affectedServices: ['database', 'api-gateway'],
+        rollbackRequired: true
+      },
+      flow: workflowFlowId
+    });
+
     /**
-     * Configuration export example
+     * Test dynamic configuration changes
      */
-    console.log('\n📄 JSON-Serializable Configuration Export:');
-    console.log('This configuration can be stored and loaded from JSON/MongoDB:');
+    console.log('\n🔄 Testing Dynamic Configuration Changes:');
     
-    const exportableConfig = {
-      version: '3.0.0',
-      dependencies: {
-        loggers: {
-          base: { key: 'baseLogger', target: 'Logger', type: 'class', args: [{ level: LogLevel.INFO, category: 'BASE' }] },
-          audit: { key: 'auditLogger', target: 'Logger', type: 'class', args: [{ level: LogLevel.ALL, category: 'AUDIT' }] }
+    console.log('Before level change:');
+    apiLogger.debug('🐛 Debug message (should be hidden)');
+    apiLogger.info('ℹ️ Info message (should be visible)');
+    
+    console.log('Changing API logger level to ALL:');
+    apiLogger.setting({ level: LogLevel.ALL });
+    apiLogger.debug('🐛 Debug message (should now be visible)');
+    apiLogger.info('ℹ️ Info message (still visible)');
+
+    /**
+     * Test service unregistration
+     */
+    console.log('\n🗑️ Testing Service Unregistration:');
+    
+    console.log('Before unregistration:');
+    const registeredKeys = container.getRegisteredKeys();
+    console.log(`Total services: ${registeredKeys.length}`);
+    
+    console.log('Unregistering factory services...');
+    container.unregister(['timestampFactory', 'uuidFactory', 'randomNumberFactory']);
+    
+    console.log('After unregistration:');
+    const remainingKeys = container.getRegisteredKeys();
+    console.log(`Remaining services: ${remainingKeys.length}`);
+    console.log(`Removed: ${registeredKeys.length - remainingKeys.length} services`);
+
+    /**
+     * Test environment-specific configuration
+     */
+    console.log('\n🌍 Testing Environment-specific Configuration:');
+    
+    const environment = container.resolve<any>('environment');
+    console.log(`Environment: ${environment.name}`);
+    console.log(`Log level: ${environment.settings.logLevel}`);
+    console.log(`Metrics enabled: ${environment.settings.enableMetrics}`);
+    console.log(`Tracing enabled: ${environment.settings.enableTracing}`);
+    console.log(`Cache size: ${environment.settings.cacheSize}`);
+
+    /**
+     * Demonstrate JSON-serializable configuration
+     */
+    console.log('\n📄 JSON-Serializable Configuration Example:');
+    
+    const jsonConfig = {
+      loggers: {
+        system: {
+          key: 'systemLogger',
+          target: 'Logger',
+          type: 'class',
+          lifetime: 'singleton',
+          args: [{ level: LogLevel.DEBUG, category: 'SYSTEM' }]
         },
-        services: {
-          business: { 
-            key: 'businessService', 
-            target: 'BusinessService', 
-            type: 'class',
-            dependencies: [
-              { target: 'calculator', type: 'ref' },
-              { target: 'greeter', type: 'ref' },
-              { target: 'auditLogger', type: 'ref' }
-            ]
-          }
-        },
-        aliases: {
-          main: { key: 'mainLogger', target: 'baseLogger', type: 'alias' },
-          processor: { key: 'orderProcessingService', target: 'businessService', type: 'alias' }
+        error: {
+          key: 'errorLogger',
+          target: 'Logger', 
+          type: 'class',
+          lifetime: 'singleton',
+          args: [{ level: LogLevel.ERROR, category: 'ERRORS' }]
+        }
+      },
+      components: {
+        greeter: {
+          key: 'greeter',
+          target: 'Greeter',
+          type: 'class',
+          lifetime: 'transient',
+          path: '../../components',
+          dependencies: [
+            { target: 'logger', type: 'ref', key: 'logger' }
+          ]
         }
       }
     };
     
-    console.log(JSON.stringify(exportableConfig, null, 2));
-    
-    console.log('\n✅ Advanced Configuration Demo completed successfully!');
-    console.log('🎉 All advanced IoC features demonstrated and working correctly!');
-    
+    console.log('Configuration that can be stored in JSON/MongoDB:');
+    console.log(JSON.stringify(jsonConfig, null, 2));
+
+    /**
+     * Performance and complexity summary
+     */
+    console.log('\n🎯 Advanced Demo Summary:');
+    console.log('  ✅ Multiple lifecycle management (singleton, transient, scoped)');
+    console.log('  ✅ Complex multi-logger configurations with different levels');
+    console.log('  ✅ Factory functions for dynamic value generation');
+    console.log('  ✅ Service discovery and registry patterns');
+    console.log('  ✅ Flow-based structured logging with metadata');
+    console.log('  ✅ Dynamic runtime configuration changes');
+    console.log('  ✅ Service unregistration and cleanup');
+    console.log('  ✅ Environment-specific configurations');
+    console.log('  ✅ JSON-serializable configuration patterns');
+    console.log('  ✅ Complex nested object dependencies');
+    console.log('  ✅ Production-ready patterns and practices');
+
+    console.log('\n✅ Advanced IoC Demo completed successfully!');
+
   } catch (error) {
-    console.error('❌ Error during advanced configuration demo:', error);
+    console.error('❌ Error during advanced demo:', error);
     process.exit(1);
   }
 })(); 
