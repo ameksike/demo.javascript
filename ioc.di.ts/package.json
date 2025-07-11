@@ -1,0 +1,26 @@
+{
+  "name": "kozen-ioc-demo",
+  "version": "1.0.0",
+  "description": "Demo de Inversion of Control con carga dinámica de componentes",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "advanced": "ts-node src/advanced-demo.ts",
+    "logger": "ts-node src/logger-demo.ts",
+    "categories": "ts-node src/category-demo.ts",
+    "processors": "ts-node src/processor-demo.ts"
+  },
+  "keywords": ["IoC", "TypeScript", "Dependency Injection"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "awilix": "^10.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  }
+} 

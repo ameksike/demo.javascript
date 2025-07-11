@@ -1,0 +1,140 @@
+import { IoC, RegistrationConfig } from './tools/ioc';
+import { Logger, LogLevel, LoggerConfig } from './tools/log';
+
+/**
+ * Advanced demo showing more IoC capabilities
+ */
+async function advancedDemo(): Promise<void> {
+  console.log('🎯 Advanced IoC Demo\n');
+
+  const container = new IoC();
+
+  // Advanced configuration examples
+  const configs: RegistrationConfig[] = [
+    // Singleton logger with DEBUG level - same instance everywhere
+    { key: 'logger', target: () => new Logger({ level: LogLevel.DEBUG, category: 'SYSTEM' }), type: 'function', lifetime: 'singleton' },
+    
+    // Different loggers with different levels
+    { key: 'errorLogger', target: () => new Logger({ level: LogLevel.ERROR, category: 'ERRORS' }), type: 'function', lifetime: 'singleton' },
+    { key: 'debugLogger', target: () => new Logger({ level: LogLevel.ALL, category: 'DEBUG' }), type: 'function', lifetime: 'singleton' },
+    
+    // Transient services - new instance each time
+    { target: 'Greeter', lifetime: 'transient', path: '../../components' },
+    
+    // Scoped services - same instance within scope
+    { target: 'Calculator', lifetime: 'scoped', path: '../../components' },
+    
+    // Configuration objects
+    { key: 'appConfig', target: { version: '1.0.0', debug: true }, type: 'value' },
+    
+    // Factory functions
+    { key: 'timestampFactory', target: () => new Date().toISOString(), type: 'value' },
+    
+    // Complex dependencies
+    { 
+      key: 'serviceMap', 
+      target: {
+        logger: 'logger',
+        greeter: 'Greeter',
+        calculator: 'Calculator'
+      }, 
+      type: 'value' 
+    }
+  ];
+
+  try {
+    // Register all dependencies
+    await container.register(configs);
+    
+    // Test singleton behavior
+    console.log('🔧 Testing Singleton Behavior:');
+    const logger1 = container.resolve<Logger>('logger');
+    const logger2 = container.resolve<Logger>('logger');
+    console.log(`Same logger instance: ${logger1 === logger2}`);
+    
+    // Test transient behavior
+    console.log('\n🔄 Testing Transient Behavior:');
+    const greeter1 = container.resolve('Greeter') as any;
+    const greeter2 = container.resolve('Greeter') as any;
+    console.log(`Same greeter instance: ${greeter1 === greeter2}`);
+    
+    // Test scoped behavior
+    console.log('\n🎯 Testing Scoped Behavior:');
+    const calc1 = container.resolve('Calculator') as any;
+    const calc2 = container.resolve('Calculator') as any;
+    console.log(`Same calculator instance: ${calc1 === calc2}`);
+    
+    // Test configuration resolution
+    console.log('\n⚙️ Configuration Resolution:');
+    const config = container.resolve<{ version: string; debug: boolean }>('appConfig');
+    console.log(`App version: ${config.version}, Debug mode: ${config.debug}`);
+    
+    // Test factory function
+    console.log('\n🏭 Factory Function:');
+    const timestamp = container.resolve<() => string>('timestampFactory');
+    console.log(`Current timestamp: ${timestamp()}`);
+    
+    // Test complex dependencies
+    console.log('\n🗺️ Service Map:');
+    const serviceMap = container.resolve<any>('serviceMap');
+    console.log('Available services:', Object.keys(serviceMap));
+    
+    // Test different logger configurations
+    console.log('\n📝 Testing Different Logger Configurations:');
+    
+    const mainLogger = container.resolve<Logger>('logger');
+    const errorLogger = container.resolve<Logger>('errorLogger');
+    const debugLogger = container.resolve<Logger>('debugLogger');
+    
+    console.log('Main logger (DEBUG level):');
+    mainLogger.debug('This debug message will show');
+    mainLogger.info('This info message will show');
+    mainLogger.warn('This warning will show');
+    mainLogger.error('This error will show');
+    
+    console.log('\nError logger (ERROR level only):');
+    errorLogger.debug('This debug message will NOT show');
+    errorLogger.info('This info message will NOT show');
+    errorLogger.warn('This warning will NOT show');
+    errorLogger.error('This error will show');
+    
+    console.log('\nDebug logger (ALL levels):');
+    debugLogger.debug('This debug message will show');
+    debugLogger.info('This info message will show');
+    debugLogger.info('This verbose-like message will show');
+    debugLogger.error('This error will show');
+    
+    // Test logger level changes
+    console.log('\n🔄 Testing Logger Level Changes:');
+    console.log('Changing main logger level to ERROR only:');
+    mainLogger.setting({ level: LogLevel.ERROR });
+    mainLogger.info('This info will NOT show after level change');
+    mainLogger.error('This error will show after level change');
+    
+    // Test logger with additional data
+    console.log('\n🏷️ Testing Logger with Additional Data:');
+    mainLogger.error('Configuration load failed', {
+      configFile: 'app.config.json',
+      error: 'File not found',
+      retries: 3
+    });
+    
+    // Test unregistration
+    console.log('\n🗑️ Testing Unregistration:');
+    console.log('Before unregister - services:', Object.keys(container['container'].registrations));
+    container.unregister(['timestampFactory']);
+    console.log('After unregister - services:', Object.keys(container['container'].registrations));
+    
+    console.log('\n✅ Advanced demo completed successfully!');
+    
+  } catch (error) {
+    console.error('❌ Advanced demo failed:', error);
+  }
+}
+
+// Run the advanced demo
+if (require.main === module) {
+  advancedDemo().catch(console.error);
+}
+
+export { advancedDemo }; 
