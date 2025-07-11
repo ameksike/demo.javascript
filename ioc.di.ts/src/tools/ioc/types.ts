@@ -1,7 +1,12 @@
 import { Lifetime } from 'awilix';
 
 /**
- * Configuration object for registering dependencies.
+ * Represents a value that can be serialized to JSON
+ */
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
+/**
+ * Configuration object for registering dependencies with enhanced support for class arguments and nested dependencies.
  */
 export type RegistrationConfig = {
   key?: string;                              // The key to register the dependency; if not provided, inferred from class name or string.
@@ -9,7 +14,33 @@ export type RegistrationConfig = {
   type?: 'class' | 'value' | 'function' | 'alias'; // The type of dependency being registered; defaults to 'class'.
   lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency; defaults to 'transient'.
   path?: string;                             // Path for dynamic imports if the target is a string.
+  args?: JsonValue[];                        // Arguments to pass to class constructor when type is 'class'
+  dependencies?: { [key: string]: RegistrationConfig }; // Nested dependencies to register and inject
 };
+
+/**
+ * Enhanced registration configuration for JSON serialization
+ * This version uses string references for targets to make it JSON-serializable
+ */
+export type JsonRegistrationConfig = {
+  key?: string;                              // The key to register the dependency
+  target: string;                            // String reference to the class/function/value
+  type?: 'class' | 'value' | 'function' | 'alias'; // The type of dependency being registered
+  lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency
+  path?: string;                             // Path for dynamic imports
+  args?: JsonValue[];                        // Arguments to pass to class constructor
+  dependencies?: { [key: string]: JsonRegistrationConfig }; // Nested dependencies
+};
+
+/**
+ * Class constructor type with proper typing
+ */
+export type ClassConstructor<T = {}> = new (...args: any[]) => T;
+
+/**
+ * Function type for dependency injection
+ */
+export type DependencyFunction<T = any> = (...args: any[]) => T;
 
 /**
  * IoC container interface - defines the contract for dependency injection containers
@@ -20,6 +51,13 @@ export interface IIoC {
    * @param configs - An array of registration configurations.
    */
   register(configs: RegistrationConfig[]): Promise<void>;
+
+  /**
+   * Registers dependencies from JSON configuration
+   * @param configs - An array of JSON-serializable registration configurations
+   * @param classRegistry - Registry of class constructors for JSON config
+   */
+  registerFromJson(configs: JsonRegistrationConfig[], classRegistry: { [key: string]: ClassConstructor }): Promise<void>;
 
   /**
    * Unregisters dependencies from the container based on their keys.

@@ -240,4 +240,245 @@ With this enhanced implementation:
 - Both **generic and non-generic resolutions** are fully supported for convenience in TypeScript.
 - The implementation is modular, extensible, and adheres to modern TypeScript and ES module practices.
 
-Let me know if you'd like further assistance or tweaks to the implementation! 😊
+--- 
+
+### **1. Specifying Custom Constructor Values**
+To define custom constructor values for a class when registering a dependency, you can use `Awilix`'s factory mechanism (`asFunction`) or use `.inject()` with `asClass` for more declarative control.
+
+#### **Example: Constructor Injection**
+```typescript
+import { createContainer, asClass, asFunction } from 'awilix';
+
+class Logger {
+  private prefix: string;
+
+  constructor(prefix: string) {
+    this.prefix = prefix;
+  }
+
+  log(message: string): void {
+    console.log(`${this.prefix}: ${message}`);
+  }
+}
+
+const container = createContainer();
+
+// Register Logger with a custom value for its constructor (e.g., the prefix)
+container.register({
+  logger: asFunction(() => new Logger('CustomPrefix')).singleton(), // Using factory to inject constructor values
+});
+
+// Resolve the dependency
+const logger = container.resolve<Logger>('logger');
+logger.log('Hello, Logger with Custom Prefix!');
+```
+
+##### **Notes on `asFunction`**:
+- `asFunction` lets you define how the instance is created manually, allowing you to inject custom values.
+- Here, we specified a custom prefix for the `Logger`.
+
+---
+
+#### **Example Alternative: Constructor Injection with `.inject()`**
+If the class depends on other dependencies while receiving custom parameters, you can use `.inject()` declaratively when registering the dependency.
+
+```typescript
+import { createContainer, asClass } from 'awilix';
+
+class Logger {
+  constructor(private prefix: string) {}
+
+  log(message: string): void {
+    console.log(`${this.prefix}: ${message}`);
+  }
+}
+
+class Greeter {
+  constructor(private logger: Logger) {}
+
+  greet(name: string): void {
+    this.logger.log(`Greeting: Hello, ${name}!`);
+  }
+}
+
+// Create the container
+const container = createContainer();
+
+// Register Logger with custom constructor parameters.
+container.register({
+  logger: asClass(Logger).inject(() => ({ prefix: 'CustomPrefix' })).singleton(), // Declarative injection for constructor parameters
+  greeter: asClass(Greeter).singleton(),
+});
+
+// Resolve Greeter, which depends on Logger
+const greeter = container.resolve<Greeter>('greeter');
+greeter.greet('World');
+```
+
+#### **Notes on `.inject()`**:
+- `.inject()` allows you to provide an object with parameters to the constructor declaratively.
+- Awilix automatically resolves other dependencies (e.g., classes) when using `.inject()`.
+
+---
+
+### **2. Manage Hierarchical Dependencies with Depth (3 Levels)**
+
+Hierarchical dependencies involve one class depending on another (Level 1), which depends on yet another (Level 2), and so on. Awilix automatically resolves these dependency hierarchies when registering them.
+
+#### **Example: Hierarchical Dependencies with 3 Levels**
+This example involves:
+- **Level 1**: `Logger` (root dependency).
+- **Level 2**: `Greeter` (depends on `Logger`).
+- **Level 3**: `App` (depends on `Greeter`, which depends on `Logger`).
+
+##### **Code: Hierarchical Dependencies**
+```typescript
+import { createContainer, asClass } from 'awilix';
+
+class Logger {
+  constructor(private prefix: string) {}
+
+  log(message: string): void {
+    console.log(`${this.prefix}: ${message}`);
+  }
+}
+
+class Greeter {
+  constructor(private logger: Logger) {}
+
+  greet(name: string): string {
+    this.logger.log(`Greeting: Hello, ${name}!`);
+    return `Hello, ${name}!`;
+  }
+}
+
+class App {
+  constructor(private greeter: Greeter) {}
+
+  run(): void {
+    const greeting = this.greeter.greet('Awilix');
+    console.log(greeting);
+  }
+}
+
+// Create the container
+const container = createContainer();
+
+// Register hierarchical dependencies
+container.register({
+  logger: asClass(Logger).inject(() => ({ prefix: 'AppLogger' })).singleton(), // Level 1: Logger with custom values
+  greeter: asClass(Greeter).singleton(), // Level 2: Greeter depends on Logger
+  app: asClass(App).singleton(), // Level 3: App depends on Greeter
+});
+
+// Resolve the top dependency (App) and execute
+const app = container.resolve<App>('app');
+app.run();
+```
+
+##### **Automatic Resolution**
+Awilix automatically resolves hierarchical dependencies:
+1. `Logger` is created and registered with `prefix: 'AppLogger'`.
+2. `Greeter` is created with the resolved instance of `Logger`.
+3. `App` is created with the resolved instance of `Greeter`.
+
+Output:
+```
+AppLogger: Greeting: Hello, Awilix!
+Hello, Awilix!
+```
+
+---
+
+### **3. Handling Complex Hierarchies with Dynamic Configuration**
+
+If you have multiple hierarchical dependencies, you can handle everything dynamically at runtime using configuration objects.
+
+#### **Dynamic Example**
+```typescript
+import { createContainer, asClass } from 'awilix';
+
+// Level 1: Logger
+class Logger {
+  constructor(public prefix: string) {}
+
+  log(message: string): void {
+    console.log(`${this.prefix}: ${message}`);
+  }
+}
+
+// Level 2: Greeter
+class Greeter {
+  constructor(private logger: Logger) {}
+  greet(name: string): string {
+    this.logger.log(`Greeting: ${name}`);
+    return `Hello, ${name}!`;
+  }
+}
+
+// Level 3: App
+class App {
+  constructor(private greeter: Greeter) {}
+  run(): void {
+    console.log(this.greeter.greet('World'));
+  }
+}
+
+// Dynamic Configurations
+const configs = [
+  { key: 'logger', target: Logger, lifetime: 'singleton', args: { prefix: 'DynamicLogger' } },
+  { key: 'greeter', target: Greeter, lifetime: 'transient' }, // Depends on Logger
+  { key: 'app', target: App, lifetime: 'singleton' }, // Depends on Greeter
+];
+
+// Create the container
+const container = createContainer();
+
+// Register configurations dynamically
+configs.forEach(({ key, target, lifetime, args }) => {
+  container.register({
+    [key]: asClass(target)
+      .inject(() => args || {})
+      [lifetime === 'singleton' ? 'singleton' : 'transient'](),
+  });
+});
+
+// Resolve App and run
+const app = container.resolve<App>('app');
+app.run();
+```
+
+Output:
+```
+DynamicLogger: Greeting: World
+Hello, World!
+```
+
+---
+
+### **Summary**
+
+#### Specifying Constructor Values:
+1. **Factory (`asFunction`)**:
+   - Use a custom factory method to inject values into the constructor.
+   - Example: `asFunction(() => new Logger('CustomPrefix')).singleton()`.
+
+2. **Declarative Injection (`.inject()`)**:
+   - Use `.inject()` with `asClass()` to pass arguments directly into the constructor.
+   - Example: `asClass(Logger).inject(() => ({ prefix: 'CustomPrefix' })).singleton()`.
+
+#### Hierarchical Dependencies:
+- Awilix automatically resolves multi-level dependencies when you register classes hierarchically.
+
+#### Dynamic Configuration:
+- Use runtime-based configurations to dynamically and efficiently manage complex dependency hierarchies. Provide:
+  - `key`: The unique key for the dependency.
+  - `target`: The class or factory to register.
+  - `lifetime`: Specify whether it should be `singleton` or `transient`.
+  - `args` (optional): Custom constructor arguments.
+
+---
+
+## References
+- [NPM - Awilix](https://www.npmjs.com/package/awilix)
+- [GitHub - Awilix](https://github.com/jeffijoe/awilix)

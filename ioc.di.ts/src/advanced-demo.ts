@@ -9,28 +9,46 @@ async function advancedDemo(): Promise<void> {
 
   const container = new IoC();
 
-  // Advanced configuration examples
+  // Enhanced configuration examples with new simplified syntax
   const configs: RegistrationConfig[] = [
-    // Singleton logger with DEBUG level - same instance everywhere
-    { key: 'logger', target: () => new Logger({ level: LogLevel.DEBUG, category: 'SYSTEM' }), type: 'function', lifetime: 'singleton' },
+    // Singleton logger with DEBUG level - new simplified syntax with args!
+    { 
+      key: 'logger', 
+      target: Logger, 
+      type: 'class', 
+      lifetime: 'singleton',
+      args: [{ level: LogLevel.DEBUG, category: 'SYSTEM' }]
+    },
     
-    // Different loggers with different levels
-    { key: 'errorLogger', target: () => new Logger({ level: LogLevel.ERROR, category: 'ERRORS' }), type: 'function', lifetime: 'singleton' },
-    { key: 'debugLogger', target: () => new Logger({ level: LogLevel.ALL, category: 'DEBUG' }), type: 'function', lifetime: 'singleton' },
+    // Different loggers with different levels - much cleaner!
+    { 
+      key: 'errorLogger', 
+      target: Logger, 
+      type: 'class', 
+      lifetime: 'singleton',
+      args: [{ level: LogLevel.ERROR, category: 'ERRORS' }]
+    },
+    { 
+      key: 'debugLogger', 
+      target: Logger, 
+      type: 'class', 
+      lifetime: 'singleton',
+      args: [{ level: LogLevel.ALL, category: 'DEBUG' }]
+    },
     
-    // Transient services - new instance each time
+    // Transient services - new instance each time (unchanged)
     { target: 'Greeter', lifetime: 'transient', path: '../../components' },
     
-    // Scoped services - same instance within scope
+    // Scoped services - same instance within scope (unchanged)
     { target: 'Calculator', lifetime: 'scoped', path: '../../components' },
     
-    // Configuration objects
+    // Configuration objects (unchanged)
     { key: 'appConfig', target: { version: '1.0.0', debug: true }, type: 'value' },
     
-    // Factory functions
+    // Factory functions (unchanged)
     { key: 'timestampFactory', target: () => new Date().toISOString(), type: 'value' },
     
-    // Complex dependencies
+    // Complex dependencies (unchanged)
     { 
       key: 'serviceMap', 
       target: {
@@ -153,6 +171,35 @@ async function advancedDemo(): Promise<void> {
     console.log('Before unregister - services:', Object.keys(container['container'].registrations));
     container.unregister(['timestampFactory']);
     console.log('After unregister - services:', Object.keys(container['container'].registrations));
+    
+    // Demonstrate JSON-friendly configuration
+    console.log('\n🔧 JSON-Friendly Configuration Example:');
+    console.log('This configuration can be saved to JSON or MongoDB:');
+    
+    const jsonFriendlyConfig = {
+      logger: {
+        key: 'logger',
+        target: 'Logger',
+        type: 'class',
+        lifetime: 'singleton',
+        args: [{ level: LogLevel.INFO, category: 'JSON' }]
+      },
+      errorLogger: {
+        key: 'errorLogger', 
+        target: 'Logger',
+        type: 'class',
+        lifetime: 'singleton',
+        args: [{ level: LogLevel.ERROR, category: 'JSON-ERRORS' }]
+      }
+    };
+    
+    console.log(JSON.stringify(jsonFriendlyConfig, null, 2));
+    
+    console.log('\n📊 Comparison - Old vs New Approach:');
+    console.log('❌ Old way (verbose):');
+    console.log('{ key: "logger", target: () => new Logger({ level: LogLevel.INFO }), type: "function", lifetime: "singleton" }');
+    console.log('✅ New way (clean):');
+    console.log('{ key: "logger", target: Logger, type: "class", lifetime: "singleton", args: [{ level: LogLevel.INFO }] }');
     
     console.log('\n✅ Advanced demo completed successfully!');
     
