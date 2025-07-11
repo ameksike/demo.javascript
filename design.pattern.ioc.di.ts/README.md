@@ -9,6 +9,10 @@ This project demonstrates an Inversion of Control (IoC) container implementation
 - **Multiple Registration Types**: Supports classes, values, functions, and aliases
 - **Lifecycle Management**: Controls whether instances are singleton or transient
 - **Full TypeScript**: Strong typing and generics for enhanced safety
+- **Advanced IoC Patterns**: Zero explicit imports, deep transitive dependency injection
+- **Alias Support**: Flexible component resolution with context-specific aliases
+- **Performance Monitoring**: Built-in performance tracking and optimization
+- **Complex Business Workflows**: Comprehensive business logic orchestration
 
 ## 📦 Project Structure
 
@@ -16,15 +20,18 @@ This project demonstrates an Inversion of Control (IoC) container implementation
 kozen/
 ├── src/
 │   ├── components/
-│   │   ├── Greeter.ts      # Class for dynamic loading
-│   │   └── Calculator.ts   # Additional example class
+│   │   ├── Greeter.ts          # Class for dynamic loading
+│   │   ├── Calculator.ts       # Mathematical operations component
+│   │   └── BusinessService.ts  # Advanced IoC demonstration component
 │   ├── tools/
-│   │   ├── ioc/            # IoC container implementation
-│   │   └── log/            # Logging system implementation
-│   ├── index.ts            # Main application
-│   └── advanced-demo.ts    # Advanced demo with more features
+│   │   ├── ioc/                # IoC container implementation
+│   │   └── log/                # Logging system implementation
+│   ├── index.ts                # Enhanced main application with BusinessService
+│   ├── advanced-demo.ts        # Advanced demo with more features
+│   └── business-service-demo.ts # Comprehensive BusinessService demo
 ├── doc/
-│   └── ioc.md             # Detailed documentation
+│   ├── ioc.md                  # IoC container documentation
+│   └── advanced-ioc-patterns.md # Advanced IoC patterns documentation
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -70,6 +77,16 @@ npm run categories
 To run the log processors demo:
 ```bash
 npm run processors
+```
+
+To run the enhanced BusinessService demo:
+```bash
+npm run business
+```
+
+To run the comprehensive advanced BusinessService demo:
+```bash
+npm run advanced-business
 ```
 
 ## 💡 How It Works
@@ -172,6 +189,62 @@ The `src/index.ts` file contains a complete demo that shows:
 5. Registration of functions and objects as values
 6. Demonstration of aliases between registrations
 7. Error handling and validations
+
+## 🏢 Advanced BusinessService Component
+
+The `BusinessService` component demonstrates advanced IoC patterns with:
+
+### Key Features
+- **Zero Explicit Imports**: No need for manual imports, IoC manages all dependencies
+- **Deep Transitive Dependency Injection**: Automatic resolution of complex dependency trees
+- **Transient Instance Management**: New instances for optimal performance and isolation
+- **Alias Support**: Multiple aliases for different business contexts
+- **Performance Monitoring**: Built-in performance tracking and optimization
+- **Complex Business Logic**: Comprehensive workflows combining multiple services
+
+### Example Usage
+
+```typescript
+// Configuration with zero imports needed in BusinessService
+const configs: RegistrationConfig[] = [
+  // Multiple logger configurations
+  { key: 'businessLogger', target: Logger, type: 'class', lifetime: 'singleton',
+    args: [{ level: LogLevel.DEBUG, category: 'BUSINESS' }] },
+  
+  // Core components
+  { target: 'Calculator', lifetime: 'singleton', path: '../../components' },
+  { target: 'Greeter', lifetime: 'transient', path: '../../components' },
+  { target: 'BusinessService', lifetime: 'transient', path: '../../components' },
+  
+  // Advanced factory function for dependency injection
+  { 
+    key: 'orderProcessor', 
+    target: (cradle: any) => new (cradle.BusinessService)({
+      calculator: cradle.Calculator,
+      greeter: cradle.Greeter,
+      logger: cradle.businessLogger
+    }),
+    type: 'function',
+    lifetime: 'transient'
+  },
+  
+  // Aliases for different business contexts
+  { key: 'customerService', target: 'orderProcessor', type: 'alias' }
+];
+
+// Usage - completely decoupled from implementation
+const businessService = container.resolve('orderProcessor');
+const result = businessService.processCustomerOrder('John Doe', orderItems);
+```
+
+### Business Logic Examples
+
+- **Order Processing**: Complex multi-step order workflows with calculations and logging
+- **Customer Feedback**: Sentiment analysis with priority scoring
+- **Performance Analytics**: Real-time performance monitoring and optimization recommendations
+- **Complete Workflows**: End-to-end business processes combining multiple services
+
+See `doc/advanced-ioc-patterns.md` for detailed documentation and examples.
 
 ## 📚 Dependencies
 

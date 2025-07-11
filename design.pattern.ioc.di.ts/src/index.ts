@@ -1,5 +1,6 @@
 import { IoC, RegistrationConfig } from './tools/ioc';
 import { Logger, LogLevel, LoggerConfig } from './tools/log';
+import { BusinessService } from './components/BusinessService';
 
 /**
  * Main application demonstrating the enhanced IoC container capabilities.
@@ -38,9 +39,39 @@ async function main(): Promise<void> {
       args: [{ level: LogLevel.ERROR, category: 'ERRORS' }]
     },
     
-    // Dynamically imported classes (unchanged)
+    // ✨ NEW: Business logger with specific configuration
+    { 
+      key: 'businessLogger', 
+      target: Logger, 
+      type: 'class', 
+      lifetime: 'singleton',
+      args: [{ level: LogLevel.INFO, category: 'BUSINESS' }]
+    },
+    
+    // ✨ ALIAS DEMO: Create aliases for different contexts
+    { key: 'mainLogger', target: 'logger', type: 'alias' },
+    { key: 'systemLogger', target: 'debugLogger', type: 'alias' },
+    { key: 'primaryLogger', target: 'businessLogger', type: 'alias' },
+    
+    // Dynamically imported classes with enhanced configuration
     { target: 'Greeter', lifetime: 'transient', path: '../../components' },
     { target: 'Calculator', lifetime: 'singleton', path: '../../components' },
+    
+    // ✨ NEW: BusinessService with transient lifecycle and complex dependencies
+    { 
+      key: 'businessService', 
+      target: (cradle: any) => new BusinessService({
+        calculator: cradle.Calculator,
+        greeter: cradle.Greeter,
+        logger: cradle.businessLogger
+      }),
+      type: 'function',
+      lifetime: 'transient'
+    },
+    
+    // ✨ NEW: BusinessService alias for different contexts
+    { key: 'orderProcessor', target: 'businessService', type: 'alias' },
+    { key: 'customerService', target: 'businessService', type: 'alias' },
     
     // Values and aliases (unchanged)
     { key: 'myVal', target: 125, type: 'value' },
@@ -148,6 +179,88 @@ async function main(): Promise<void> {
     const calculator2 = manager.resolve('Calculator') as any;
     console.log(`Same calculator instance? ${calculator === calculator2}`);
 
+    // ✨ NEW: Demonstrate BusinessService with deep dependency injection
+    console.log('\n🏢 Testing Advanced BusinessService (Transient + Deep Dependencies)...');
+    
+    // Create multiple instances to demonstrate transient behavior
+    const businessService1 = manager.resolve('businessService') as any;
+    const businessService2 = manager.resolve('businessService') as any;
+    
+    console.log(`BusinessService instances different? ${businessService1 !== businessService2}`);
+    
+    // Test aliases for BusinessService
+    const orderProcessor = manager.resolve('orderProcessor') as any;
+    const customerService = manager.resolve('customerService') as any;
+    
+    console.log(`\n📊 Alias Resolution Test:`);
+    console.log(`  OrderProcessor resolved: ${orderProcessor !== undefined}`);
+    console.log(`  CustomerService resolved: ${customerService !== undefined}`);
+    console.log(`  Both are different instances: ${orderProcessor !== customerService}`);
+    
+    // Process a sample customer order
+    const orderItems = [
+      { name: 'Premium Widget', quantity: 2, price: 29.99 },
+      { name: 'Standard Tool', quantity: 1, price: 15.50 },
+      { name: 'Deluxe Package', quantity: 3, price: 45.00 }
+    ];
+    
+    const orderResult = businessService1.processCustomerOrder('Alice Johnson', orderItems);
+    console.log(`\n📦 Order Processing Result:`);
+    console.log(`  Customer: ${orderResult.customer}`);
+    console.log(`  Items: ${orderResult.itemCount} items`);
+    console.log(`  Subtotal: $${orderResult.subtotal.toFixed(2)}`);
+    console.log(`  Tax: $${orderResult.tax.toFixed(2)}`);
+    console.log(`  Total: $${orderResult.total.toFixed(2)}`);
+    console.log(`  Processing Time: ${orderResult.processingTime.toFixed(2)}ms`);
+    
+    // Test feedback processing
+    const feedbackResult = businessService1.handleCustomerFeedback(
+      'Alice Johnson', 
+      'Great service and fast delivery! Very satisfied with my purchase.',
+      5
+    );
+    console.log(`\n💬 Feedback Processing Result:`);
+    console.log(`  Sentiment: ${feedbackResult.sentiment}`);
+    console.log(`  Priority: ${feedbackResult.priority}`);
+    console.log(`  Response Time: ${feedbackResult.responseTime.toFixed(2)}ms`);
+    
+    // Execute complete business workflow
+    const workflowResult = businessService2.executeBusinessWorkflow(
+      'Bob Smith',
+      [{ name: 'Ultimate Product', quantity: 1, price: 99.99 }],
+      'Could be better, but acceptable quality.',
+      3
+    );
+    console.log(`\n🔄 Complete Workflow Result:`);
+    console.log(`  ${workflowResult.welcome}`);
+    console.log(`  Order Total: $${workflowResult.order.total.toFixed(2)}`);
+    console.log(`  Feedback Sentiment: ${workflowResult.feedback.sentiment}`);
+    console.log(`  ${workflowResult.conclusion}`);
+    
+    // Demonstrate logger alias usage
+    console.log('\n🏷️ Testing Logger Aliases...');
+    const mainLogger = manager.resolve<Logger>('mainLogger');
+    const systemLogger = manager.resolve<Logger>('systemLogger');
+    const primaryLogger = manager.resolve<Logger>('primaryLogger');
+    
+    mainLogger.info('Message from main logger alias');
+    systemLogger.debug('Debug message from system logger alias');
+    primaryLogger.info('Business message from primary logger alias');
+    
+    // Performance comparison
+    console.log('\n⚡ Performance Comparison:');
+    const performanceReport = businessService1.generatePerformanceReport();
+    console.log(`  Total Operations: ${performanceReport.totalOperations}`);
+    console.log(`  Efficiency: ${performanceReport.efficiency}`);
+    console.log(`  Recommendations: ${performanceReport.recommendations.join(', ')}`);
+    
+    // Service statistics
+    const stats = businessService1.getServiceStats();
+    console.log(`\n📈 Service Statistics:`);
+    console.log(`  Operations Count: ${stats.operationCount}`);
+    console.log(`  Last Operation Time: ${stats.lastOperationTime.toFixed(2)}ms`);
+    console.log(`  Status: ${stats.status}`);
+
     // Show registered dependencies
     console.log('\n📋 Registered Dependencies:');
     const registeredKeys = manager.getRegisteredKeys();
@@ -164,11 +277,19 @@ async function main(): Promise<void> {
     console.log('  ✅ Backward compatibility with existing code');
     console.log('  ✅ Dynamic imports and lifecycle management');
     console.log('  ✅ Type-safe dependency resolution');
+    console.log('  ✅ Deep transitive dependency injection');
+    console.log('  ✅ Alias support for flexible component resolution');
+    console.log('  ✅ Transient instances with zero explicit imports');
+    console.log('  ✅ Performance monitoring and optimization');
     
     console.log('\n🎯 Enhanced IoC demo completed successfully!');
-    console.log('\n📊 Comparison - Old vs New Logger Registration:');
+    console.log('\n📊 Comparison - Old vs New Patterns:');
     console.log('❌ Old: { key: "logger", target: () => new Logger(...), type: "function" }');
     console.log('✅ New: { key: "logger", target: Logger, type: "class", args: [...] }');
+    console.log('❌ Old: Manual import and instantiation');
+    console.log('✅ New: Zero imports, IoC manages all dependencies');
+    console.log('❌ Old: Tight coupling between components');
+    console.log('✅ New: Loose coupling with transitive dependency injection');
 
   } catch (error) {
     console.error('❌ Error during enhanced demo:', error);

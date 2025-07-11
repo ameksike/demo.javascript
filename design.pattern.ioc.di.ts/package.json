@@ -10,7 +10,9 @@
     "advanced": "ts-node src/advanced-demo.ts",
     "logger": "ts-node src/logger-demo.ts",
     "categories": "ts-node src/category-demo.ts",
-    "processors": "ts-node src/processor-demo.ts"
+    "processors": "ts-node src/processor-demo.ts",
+    "business": "ts-node src/index.ts",
+    "advanced-business": "ts-node src/business-service-demo.ts"
   },
   "keywords": ["IoC", "TypeScript", "Dependency Injection"],
   "author": "",
