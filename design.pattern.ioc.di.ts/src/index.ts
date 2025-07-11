@@ -1,113 +1,153 @@
 import { IoC, RegistrationConfig } from './tools/ioc';
 import { Logger, LogLevel, LoggerConfig } from './tools/log';
-import { BusinessService } from './components/BusinessService';
 
 /**
- * Main application demonstrating the enhanced IoC container capabilities.
+ * Main IoC Demo - Enhanced Dependency Injection System
+ * 
+ * This demo demonstrates the core IoC container capabilities:
+ * - Multiple logger configurations with different levels
+ * - Dynamic imports and component registration
+ * - Lifecycle management (singleton vs transient)
+ * - Value resolution and function registration
+ * - Alias support for flexible resolution
+ * - Complex configuration objects
+ * - BusinessService with JSON-serializable dependency injection
+ * 
+ * Complexity Level: ⭐⭐⭐ (Advanced - Main Application)
  */
-async function main(): Promise<void> {
-  console.log('🚀 Starting Enhanced IoC Demo...\n');
-
-  // Create IoC container
-  const manager = new IoC();
-
-  // Enhanced registration configurations with new simplified syntax
-  const configs: RegistrationConfig[] = [
-    // ✨ NEW: Simplified logger registration with args instead of functions
-    { 
-      key: 'logger', 
-      target: Logger, 
-      type: 'class', 
-      lifetime: 'singleton',
-      args: [{ level: LogLevel.INFO, category: 'MAIN' }]
-    },
-    
-    // ✨ NEW: Additional loggers with different configurations
-    { 
-      key: 'debugLogger', 
-      target: Logger, 
-      type: 'class', 
-      lifetime: 'singleton',
-      args: [{ level: LogLevel.DEBUG, category: 'DEBUG' }]
-    },
-    
-    { 
-      key: 'errorLogger', 
-      target: Logger, 
-      type: 'class', 
-      lifetime: 'singleton',
-      args: [{ level: LogLevel.ERROR, category: 'ERRORS' }]
-    },
-    
-    // ✨ NEW: Business logger with specific configuration
-    { 
-      key: 'businessLogger', 
-      target: Logger, 
-      type: 'class', 
-      lifetime: 'singleton',
-      args: [{ level: LogLevel.INFO, category: 'BUSINESS' }]
-    },
-    
-    // ✨ ALIAS DEMO: Create aliases for different contexts
-    { key: 'mainLogger', target: 'logger', type: 'alias' },
-    { key: 'systemLogger', target: 'debugLogger', type: 'alias' },
-    { key: 'primaryLogger', target: 'businessLogger', type: 'alias' },
-    
-    // Dynamically imported classes with enhanced configuration
-    { target: 'Greeter', lifetime: 'transient', path: '../../components' },
-    { target: 'Calculator', lifetime: 'singleton', path: '../../components' },
-    
-    // ✨ NEW: BusinessService with transient lifecycle and complex dependencies
-    { 
-      key: 'businessService', 
-      target: (cradle: any) => new BusinessService({
-        calculator: cradle.Calculator,
-        greeter: cradle.Greeter,
-        logger: cradle.businessLogger
-      }),
-      type: 'function',
-      lifetime: 'transient'
-    },
-    
-    // ✨ NEW: BusinessService alias for different contexts
-    { key: 'orderProcessor', target: 'businessService', type: 'alias' },
-    { key: 'customerService', target: 'businessService', type: 'alias' },
-    
-    // Values and aliases (unchanged)
-    { key: 'myVal', target: 125, type: 'value' },
-    { key: 'otherVal', target: 'myVal', type: 'alias' },
-    { key: 'greetingFunction', target: function(name: string) { return `Hello, ${name}!`; }, type: 'value' },
-    { key: 'mathConstants', target: { PI: 3.14159, E: 2.71828 }, type: 'value' },
-    
-    // ✨ NEW: Enhanced configuration objects
-    { 
-      key: 'appConfig', 
-      target: { 
-        version: '2.0.0',
-        environment: 'development',
-        features: {
-          enhancedLogging: true,
-          jsonConfiguration: true,
-          nestedDependencies: true
-        },
-        database: {
-          host: 'localhost',
-          port: 5432,
-          name: 'enhanced_app'
-        }
-      }, 
-      type: 'value' 
-    }
-  ];
+(async function main(): Promise<void> {
+  console.log('🚀 Enhanced IoC Demo - Main Application\n');
 
   try {
-    // Register dependencies
+    // Create IoC container
+    const manager = new IoC();
+
+    /**
+     * Enhanced configuration with multiple loggers, components, and business services
+     */
+    const configs: RegistrationConfig[] = [
+      // Core loggers with different configurations
+      { 
+        key: 'logger', 
+        target: Logger, 
+        type: 'class', 
+        lifetime: 'singleton',
+        args: [{ level: LogLevel.INFO, category: 'MAIN' }]
+      },
+      
+      { 
+        key: 'businessLogger', 
+        target: Logger, 
+        type: 'class', 
+        lifetime: 'singleton',
+        args: [{ level: LogLevel.INFO, category: 'BUSINESS' }]
+      },
+      
+      { 
+        key: 'debugLogger', 
+        target: Logger, 
+        type: 'class', 
+        lifetime: 'singleton',
+        args: [{ level: LogLevel.DEBUG, category: 'DEBUG' }]
+      },
+      
+      { 
+        key: 'errorLogger', 
+        target: Logger, 
+        type: 'class', 
+        lifetime: 'singleton',
+        args: [{ level: LogLevel.ERROR, category: 'ERRORS' }]
+      },
+      
+      // Logger aliases for different contexts
+      { key: 'mainLogger', target: 'logger', type: 'alias' },
+      { key: 'systemLogger', target: 'debugLogger', type: 'alias' },
+      { key: 'primaryLogger', target: 'businessLogger', type: 'alias' },
+      
+      // Core components with explicit keys for reference
+      { 
+        key: 'Greeter',
+        target: 'Greeter', 
+        type: 'class', 
+        lifetime: 'transient', 
+        path: '../../components',
+        dependencies: [
+          { target: 'logger', type: 'ref', key: 'logger' }
+        ]
+      },
+      
+      { 
+        key: 'Calculator',
+        target: 'Calculator', 
+        type: 'class', 
+        lifetime: 'singleton', 
+        path: '../../components',
+        dependencies: [
+          { target: 'logger', type: 'ref', key: 'logger' }
+        ]
+      },
+      
+      // BusinessService with JSON-serializable dependency injection
+      { 
+        key: 'businessService', 
+        target: 'BusinessService',
+        type: 'class',
+        lifetime: 'transient',
+        path: '../../components',
+        dependencies: [
+          { target: 'Calculator', type: 'ref', key: 'calculator' },
+          { target: 'Greeter', type: 'ref', key: 'greeter' },
+          { target: 'businessLogger', type: 'ref', key: 'logger' }
+        ]
+      },
+      
+      // BusinessService aliases for different contexts
+      { key: 'orderProcessor', target: 'businessService', type: 'alias' },
+      { key: 'customerService', target: 'businessService', type: 'alias' },
+      
+      // Value registrations
+      { key: 'myVal', target: 125, type: 'value' },
+      { key: 'otherVal', target: 'myVal', type: 'alias' },
+      { key: 'greetingFunction', target: function(name: string) { return `Hello, ${name}!`; }, type: 'value' },
+      { key: 'mathConstants', target: { PI: 3.14159, E: 2.71828 }, type: 'value' },
+      
+      // Enhanced configuration objects
+      { 
+        key: 'appConfig', 
+        target: { 
+          version: '2.0.0',
+          environment: 'development',
+          features: {
+            enhancedLogging: true,
+            jsonConfiguration: true,
+            nestedDependencies: true,
+            aliasSupport: true
+          },
+          database: {
+            host: 'localhost',
+            port: 5432,
+            name: 'enhanced_app'
+          },
+          performance: {
+            maxConcurrentServices: 50,
+            serviceTimeout: 15000
+          }
+        }, 
+        type: 'value' 
+      }
+    ];
+
+    /**
+     * Register all dependencies
+     */
     console.log('📦 Registering enhanced dependencies...');
     await manager.register(configs);
     console.log('✅ Enhanced dependencies registered successfully!\n');
 
-    // Demonstrate enhanced logging capabilities
-    console.log('🔍 Testing Enhanced Logging...');
+    /**
+     * Test enhanced logging capabilities
+     */
+    console.log('🔍 Testing Enhanced Logging:');
     const logger = manager.resolve<Logger>('logger');
     const debugLogger = manager.resolve<Logger>('debugLogger');
     const errorLogger = manager.resolve<Logger>('errorLogger');
@@ -127,66 +167,84 @@ async function main(): Promise<void> {
       data: { severity: 'HIGH', module: 'IoC' }
     });
 
-    // Resolve and use the dynamically imported classes
-    console.log('\n🎭 Testing Dynamic Imports...');
+    /**
+     * Test dynamic imports and component resolution
+     */
+    console.log('\n🎭 Testing Dynamic Imports:');
     const greeter = manager.resolve('Greeter') as any;
-    console.log(greeter.greet('Enhanced TypeScript User'));
-    console.log(greeter.welcome('Advanced Developer'));
-    console.log(greeter.farewell('IoC Demo User'));
+    console.log(`  ${greeter.greet('Enhanced TypeScript User')}`);
+    console.log(`  ${greeter.welcome('Advanced Developer')}`);
+    console.log(`  ${greeter.farewell('IoC Demo User')}`);
 
-    // Resolve and use values
-    console.log('\n📊 Testing Value Resolution...');
+    /**
+     * Test value resolution and aliases
+     */
+    console.log('\n📊 Testing Value Resolution:');
     const myValue = manager.resolve<number>('myVal');
-    console.log(`Resolved value: ${myValue}`);
+    console.log(`  Resolved value: ${myValue}`);
 
     const aliasedValue = manager.resolve<number>('otherVal');
-    console.log(`Resolved aliased value: ${aliasedValue}`);
+    console.log(`  Resolved aliased value: ${aliasedValue}`);
 
-    // Resolve and use function
+    // Test function resolution
     const greetingFunc = manager.resolve<(name: string) => string>('greetingFunction');
-    console.log(`🎉 ${greetingFunc('Enhanced Function')}`);
+    console.log(`  🎉 ${greetingFunc('Enhanced Function')}`);
 
-    // Resolve and use the Calculator class
-    console.log('\n🧮 Testing Calculator...');
+    /**
+     * Test Calculator component
+     */
+    console.log('\n🧮 Testing Calculator:');
     const calculator = manager.resolve('Calculator') as any;
-    console.log(`  ${calculator.add(15, 25)}`);
-    console.log(`  ${calculator.subtract(50, 23)}`);
-    console.log(`  ${calculator.multiply(6, 9)}`);
-    console.log(`  ${calculator.divide(144, 12)}`);
+    console.log(`  Addition: ${calculator.add(15, 25)}`);
+    console.log(`  Subtraction: ${calculator.subtract(50, 23)}`);
+    console.log(`  Multiplication: ${calculator.multiply(6, 9)}`);
+    console.log(`  Division: ${calculator.divide(144, 12)}`);
 
-    // Resolve and use enhanced configuration
-    console.log('\n⚙️ Testing Enhanced Configuration...');
+    /**
+     * Test enhanced configuration resolution
+     */
+    console.log('\n⚙️ Testing Enhanced Configuration:');
     const appConfig = manager.resolve<any>('appConfig');
-    console.log(`App Version: ${appConfig.version}`);
-    console.log(`Environment: ${appConfig.environment}`);
-    console.log(`Enhanced Logging: ${appConfig.features.enhancedLogging}`);
-    console.log(`Database: ${appConfig.database.host}:${appConfig.database.port}/${appConfig.database.name}`);
+    console.log(`  App Version: ${appConfig.version}`);
+    console.log(`  Environment: ${appConfig.environment}`);
+    console.log(`  Enhanced Logging: ${appConfig.features.enhancedLogging}`);
+    console.log(`  Alias Support: ${appConfig.features.aliasSupport}`);
+    console.log(`  Database: ${appConfig.database.host}:${appConfig.database.port}/${appConfig.database.name}`);
+    console.log(`  Max Services: ${appConfig.performance.maxConcurrentServices}`);
 
-    // Resolve and use object value
+    /**
+     * Test math constants resolution
+     */
     const mathConstants = manager.resolve<{ PI: number; E: number }>('mathConstants');
     console.log(`\n📐 Math Constants: PI = ${mathConstants.PI}, E = ${mathConstants.E}`);
 
-    // Demonstrate singleton behavior
-    console.log('\n🔗 Testing Singleton Behavior...');
+    /**
+     * Test lifecycle behaviors
+     */
+    console.log('\n🔗 Testing Lifecycle Behaviors:');
+    
+    // Singleton behavior
     const logger2 = manager.resolve<Logger>('logger');
-    console.log(`Same logger instance? ${logger === logger2}`);
+    console.log(`  Same logger instance (singleton): ${logger === logger2}`);
 
-    // Demonstrate transient behavior
+    // Transient behavior
     const greeter2 = manager.resolve('Greeter') as any;
-    console.log(`Same greeter instance? ${greeter === greeter2}`);
+    console.log(`  Different greeter instances (transient): ${greeter !== greeter2}`);
 
-    // Demonstrate singleton behavior with Calculator
+    // Singleton behavior with Calculator
     const calculator2 = manager.resolve('Calculator') as any;
-    console.log(`Same calculator instance? ${calculator === calculator2}`);
+    console.log(`  Same calculator instance (singleton): ${calculator === calculator2}`);
 
-    // ✨ NEW: Demonstrate BusinessService with deep dependency injection
-    console.log('\n🏢 Testing Advanced BusinessService (Transient + Deep Dependencies)...');
+    /**
+     * Test BusinessService with deep dependency injection
+     */
+    console.log('\n🏢 Testing Advanced BusinessService:');
     
     // Create multiple instances to demonstrate transient behavior
     const businessService1 = manager.resolve('businessService') as any;
     const businessService2 = manager.resolve('businessService') as any;
     
-    console.log(`BusinessService instances different? ${businessService1 !== businessService2}`);
+    console.log(`  Different BusinessService instances (transient): ${businessService1 !== businessService2}`);
     
     // Test aliases for BusinessService
     const orderProcessor = manager.resolve('orderProcessor') as any;
@@ -196,6 +254,11 @@ async function main(): Promise<void> {
     console.log(`  OrderProcessor resolved: ${orderProcessor !== undefined}`);
     console.log(`  CustomerService resolved: ${customerService !== undefined}`);
     console.log(`  Both are different instances: ${orderProcessor !== customerService}`);
+    
+    /**
+     * Test comprehensive business operations
+     */
+    console.log('\n💼 Testing Business Operations:');
     
     // Process a sample customer order
     const orderItems = [
@@ -236,19 +299,23 @@ async function main(): Promise<void> {
     console.log(`  Order Total: $${workflowResult.order.total.toFixed(2)}`);
     console.log(`  Feedback Sentiment: ${workflowResult.feedback.sentiment}`);
     console.log(`  ${workflowResult.conclusion}`);
-    
-    // Demonstrate logger alias usage
-    console.log('\n🏷️ Testing Logger Aliases...');
+
+    /**
+     * Test logger alias usage
+     */
+    console.log('\n🏷️ Testing Logger Aliases:');
     const mainLogger = manager.resolve<Logger>('mainLogger');
     const systemLogger = manager.resolve<Logger>('systemLogger');
     const primaryLogger = manager.resolve<Logger>('primaryLogger');
     
-    mainLogger.info('Message from main logger alias');
-    systemLogger.debug('Debug message from system logger alias');
-    primaryLogger.info('Business message from primary logger alias');
+    mainLogger.info('✅ Message from main logger alias');
+    systemLogger.debug('✅ Debug message from system logger alias');
+    primaryLogger.info('✅ Business message from primary logger alias');
     
-    // Performance comparison
-    console.log('\n⚡ Performance Comparison:');
+    /**
+     * Performance analysis and service statistics
+     */
+    console.log('\n⚡ Performance Analysis:');
     const performanceReport = businessService1.generatePerformanceReport();
     console.log(`  Total Operations: ${performanceReport.totalOperations}`);
     console.log(`  Efficiency: ${performanceReport.efficiency}`);
@@ -261,15 +328,30 @@ async function main(): Promise<void> {
     console.log(`  Last Operation Time: ${stats.lastOperationTime.toFixed(2)}ms`);
     console.log(`  Status: ${stats.status}`);
 
-    // Show registered dependencies
-    console.log('\n📋 Registered Dependencies:');
+    /**
+     * Container introspection
+     */
+    console.log('\n📋 Container Information:');
     const registeredKeys = manager.getRegisteredKeys();
+    console.log(`  Total registered dependencies: ${registeredKeys.length}`);
+    
+    const serviceKeys = registeredKeys.filter(key => key.toLowerCase().includes('service'));
+    const loggerKeys = registeredKeys.filter(key => key.toLowerCase().includes('logger'));
+    const aliasKeys = registeredKeys.filter(key => ['orderProcessor', 'customerService', 'mainLogger', 'systemLogger', 'primaryLogger', 'otherVal'].includes(key));
+    
+    console.log(`  Business Services: ${serviceKeys.length}`);
+    console.log(`  Logger Instances: ${loggerKeys.length}`);
+    console.log(`  Aliases: ${aliasKeys.length}`);
+    
+    console.log('\n  All Registered Keys:');
     registeredKeys.forEach(key => {
-      console.log(`  ✓ ${key}`);
+      console.log(`    ✓ ${key}`);
     });
 
-    // Demonstrate new capabilities summary
-    console.log('\n🌟 Enhanced IoC Capabilities Demonstrated:');
+    /**
+     * Summary of capabilities demonstrated
+     */
+    console.log('\n🌟 Enhanced IoC Capabilities Summary:');
     console.log('  ✅ Simplified class registration with args[]');
     console.log('  ✅ Multiple logger instances with different configurations');
     console.log('  ✅ Enhanced flow-based logging structure');
@@ -281,20 +363,24 @@ async function main(): Promise<void> {
     console.log('  ✅ Alias support for flexible component resolution');
     console.log('  ✅ Transient instances with zero explicit imports');
     console.log('  ✅ Performance monitoring and optimization');
+    console.log('  ✅ JSON-serializable dependency injection');
     
-    console.log('\n🎯 Enhanced IoC demo completed successfully!');
-    console.log('\n📊 Comparison - Old vs New Patterns:');
-    console.log('❌ Old: { key: "logger", target: () => new Logger(...), type: "function" }');
-    console.log('✅ New: { key: "logger", target: Logger, type: "class", args: [...] }');
-    console.log('❌ Old: Manual import and instantiation');
-    console.log('✅ New: Zero imports, IoC manages all dependencies');
-    console.log('❌ Old: Tight coupling between components');
-    console.log('✅ New: Loose coupling with transitive dependency injection');
+    console.log('\n📊 Configuration Pattern Comparison:');
+    console.log('  ❌ Old: { key: "logger", target: () => new Logger(...), type: "function" }');
+    console.log('  ✅ New: { key: "logger", target: Logger, type: "class", args: [...] }');
+    console.log('  ❌ Old: Factory functions (not JSON-serializable)');
+    console.log('  ✅ New: Reference syntax { target: "Calculator", type: "ref" }');
+    console.log('  ❌ Old: Manual import and instantiation');
+    console.log('  ✅ New: Zero imports, IoC manages all dependencies');
+    console.log('  ❌ Old: Tight coupling between components');
+    console.log('  ✅ New: Loose coupling with transitive dependency injection');
+    console.log('  🎯 ACHIEVEMENT: Complete JSON/MongoDB serializable configuration!');
+    
+    console.log('\n✅ Enhanced IoC Demo completed successfully!');
+    console.log('🎉 All IoC features working correctly with production-ready patterns!');
 
   } catch (error) {
     console.error('❌ Error during enhanced demo:', error);
+    process.exit(1);
   }
-}
-
-// Run the enhanced demo
-main().catch(console.error);
+})();

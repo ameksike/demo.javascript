@@ -7,12 +7,10 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "advanced": "ts-node src/advanced-demo.ts",
-    "logger": "ts-node src/logger-demo.ts",
-    "categories": "ts-node src/category-demo.ts",
-    "processors": "ts-node src/processor-demo.ts",
-    "business": "ts-node src/index.ts",
-    "advanced-business": "ts-node src/business-service-demo.ts"
+    "simple": "ts-node src/demo-simple.ts",
+    "medium": "ts-node src/demo-medium.ts",
+    "advanced": "ts-node src/demo-advanced.ts",
+    "logger": "ts-node src/demo-logger.ts"
   },
   "keywords": ["IoC", "TypeScript", "Dependency Injection"],
   "author": "",

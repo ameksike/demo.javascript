@@ -6,16 +6,29 @@ import { Lifetime } from 'awilix';
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 /**
+ * Dependency configuration for nested dependencies - can be inline or reference
+ */
+export type DependencyConfig = {
+  key?: string;                              // The key to register the dependency
+  target: any;                               // The target: Class, function, value, alias, string, or reference key
+  type?: 'class' | 'value' | 'function' | 'alias' | 'ref'; // The type of dependency being registered; 'ref' for references
+  lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency
+  path?: string;                             // Path for dynamic imports if the target is a string
+  args?: JsonValue[];                        // Arguments to pass to class constructor when type is 'class'
+  dependencies?: DependencyConfig[];         // Nested dependencies as array
+};
+
+/**
  * Configuration object for registering dependencies with enhanced support for class arguments and nested dependencies.
  */
 export type RegistrationConfig = {
   key?: string;                              // The key to register the dependency; if not provided, inferred from class name or string.
   target: any;                               // The target to register: Class, function, value, alias, or string (for dynamic imports).
-  type?: 'class' | 'value' | 'function' | 'alias'; // The type of dependency being registered; defaults to 'class'.
+  type?: 'class' | 'value' | 'function' | 'alias' | 'ref'; // The type of dependency being registered; defaults to 'class'.
   lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency; defaults to 'transient'.
   path?: string;                             // Path for dynamic imports if the target is a string.
   args?: JsonValue[];                        // Arguments to pass to class constructor when type is 'class'
-  dependencies?: { [key: string]: RegistrationConfig }; // Nested dependencies to register and inject
+  dependencies?: DependencyConfig[];         // Array of dependencies to register and inject
 };
 
 /**
