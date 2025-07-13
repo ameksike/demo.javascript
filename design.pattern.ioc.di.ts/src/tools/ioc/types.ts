@@ -14,6 +14,7 @@ export type DependencyConfig = {
   type?: 'class' | 'value' | 'function' | 'alias' | 'ref'; // The type of dependency being registered; 'ref' for references
   lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency
   path?: string;                             // Path for dynamic imports if the target is a string
+  file?: string;                             // Direct file path for module imports (takes precedence over path/target combination)
   args?: JsonValue[];                        // Arguments to pass to class constructor when type is 'class'
   dependencies?: DependencyConfig[];         // Nested dependencies as array
 };
@@ -27,6 +28,7 @@ export type RegistrationConfig = {
   type?: 'class' | 'value' | 'function' | 'alias' | 'ref'; // The type of dependency being registered; defaults to 'class'.
   lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency; defaults to 'transient'.
   path?: string;                             // Path for dynamic imports if the target is a string.
+  file?: string;                             // Direct file path for module imports (takes precedence over path/target combination)
   args?: JsonValue[];                        // Arguments to pass to class constructor when type is 'class'
   dependencies?: DependencyConfig[];         // Array of dependencies to register and inject
 };
@@ -41,6 +43,7 @@ export type JsonRegistrationConfig = {
   type?: 'class' | 'value' | 'function' | 'alias'; // The type of dependency being registered
   lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency
   path?: string;                             // Path for dynamic imports
+  file?: string;                             // Direct file path for module imports (takes precedence over path/target combination)
   args?: JsonValue[];                        // Arguments to pass to class constructor
   dependencies?: { [key: string]: JsonRegistrationConfig }; // Nested dependencies
 };
