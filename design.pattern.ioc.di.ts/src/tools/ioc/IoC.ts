@@ -1,5 +1,5 @@
 import { createContainer, asClass, asValue, asFunction, aliasTo, AwilixContainer } from 'awilix';
-import { RegistrationConfig, IIoC, JsonRegistrationConfig, ClassConstructor, JsonValue, DependencyConfig } from './types';
+import { ServiceConfig, IIoC, JsonRegistrationConfig, ClassConstructor, JsonValue } from './types';
 
 /**
  * Optimized IoC container wrapper over Awilix.
@@ -13,7 +13,7 @@ import { RegistrationConfig, IIoC, JsonRegistrationConfig, ClassConstructor, Jso
  */
 export class IoC implements IIoC {
   private readonly container: AwilixContainer;
-  private readonly registeredConfigs = new Map<string, RegistrationConfig>();
+  private readonly registeredConfigs = new Map<string, ServiceConfig>();
 
   // Performance optimization: Cache commonly used patterns
   private readonly propertyNameCache = new Map<string, string>();
@@ -42,7 +42,7 @@ export class IoC implements IIoC {
    * First pass: dependencies without references
    * Second pass: dependencies with references (to ensure proper resolution order)
    */
-  async register(configs: RegistrationConfig[]): Promise<void> {
+  async register(configs: ServiceConfig[]): Promise<void> {
     const [withoutDeps, withDeps] = this.partitionConfigs(configs);
     
     // Register dependencies without references first
@@ -65,9 +65,9 @@ export class IoC implements IIoC {
   /**
    * Partitions configurations into those with and without dependencies for optimal registration order.
    */
-  private partitionConfigs(configs: RegistrationConfig[]): [RegistrationConfig[], RegistrationConfig[]] {
-    const withoutDeps: RegistrationConfig[] = [];
-    const withDeps: RegistrationConfig[] = [];
+  private partitionConfigs(configs: ServiceConfig[]): [ServiceConfig[], ServiceConfig[]] {
+    const withoutDeps: ServiceConfig[] = [];
+    const withDeps: ServiceConfig[] = [];
     
     for (const config of configs) {
       if (!config.dependencies?.length) {
@@ -83,7 +83,7 @@ export class IoC implements IIoC {
   /**
    * Registers a batch of configurations.
    */
-  private async registerBatch(configs: RegistrationConfig[]): Promise<void> {
+  private async registerBatch(configs: ServiceConfig[]): Promise<void> {
     for (const config of configs) {
       await this.registerSingle(config);
     }
@@ -92,7 +92,7 @@ export class IoC implements IIoC {
   /**
    * Registers a single dependency with optimized type handling.
    */
-  private async registerSingle(config: RegistrationConfig): Promise<void> {
+  private async registerSingle(config: ServiceConfig): Promise<void> {
     const { key, target, type = 'class', lifetime = 'transient', path, args, dependencies, file } = config;
 
     // Handle reference case with early return pattern
@@ -116,7 +116,7 @@ export class IoC implements IIoC {
   /**
    * Handles reference type registrations.
    */
-  private async handleReference(config: RegistrationConfig): Promise<void> {
+  private async handleReference(config: ServiceConfig): Promise<void> {
     const existingConfig = this.registeredConfigs.get(config.target as string);
     if (!existingConfig) {
       throw new Error(IoC.ERRORS.REFERENCE_NOT_FOUND(config.target as string));
@@ -142,7 +142,7 @@ export class IoC implements IIoC {
     lifetime: 'singleton' | 'transient' | 'scoped',
     path?: string,
     args?: JsonValue[],
-    dependencies?: DependencyConfig[],
+    dependencies?: ServiceConfig[],
     file?: string
   ): Promise<void> {
     switch (type) {
@@ -186,7 +186,7 @@ export class IoC implements IIoC {
     lifetime: 'singleton' | 'transient' | 'scoped',
     path?: string,
     args?: JsonValue[],
-    dependencies?: DependencyConfig[],
+    dependencies?: ServiceConfig[],
     file?: string
   ): Promise<void> {
     const classConstructor = await this.resolveClassConstructor(key, target, path, file);
@@ -287,7 +287,7 @@ export class IoC implements IIoC {
   private createFactoryFunction(
     classConstructor: ClassConstructor,
     args?: JsonValue[],
-    dependencies?: DependencyConfig[]
+    dependencies?: ServiceConfig[]
   ): (cradle: any) => any {
     return (cradle: any) => {
       // Handle static arguments
@@ -317,7 +317,7 @@ export class IoC implements IIoC {
   /**
    * Resolves dependency object from cradle using cached property names for performance.
    */
-  private resolveDependencyObject(cradle: any, dependencies: DependencyConfig[]): Record<string, any> {
+  private resolveDependencyObject(cradle: any, dependencies: ServiceConfig[]): Record<string, any> {
     const dependencyObject: Record<string, any> = {};
     
     for (const dep of dependencies) {
@@ -331,7 +331,7 @@ export class IoC implements IIoC {
   /**
    * Resolves property and target names for a dependency with caching.
    */
-  private resolveDependencyNames(dep: DependencyConfig): { propertyName: string; targetKey: string } {
+  private resolveDependencyNames(dep: ServiceConfig): { propertyName: string; targetKey: string } {
     if (dep.type === 'ref') {
       const targetKey = dep.target as string;
       const propertyName = dep.key ?? this.getCachedPropertyName(targetKey);
@@ -377,10 +377,10 @@ export class IoC implements IIoC {
   // === JSON CONFIGURATION METHODS ===
 
   /**
-   * Converts JSON configuration to regular registration configuration.
+   * Converts JSON configuration to regular service configuration.
    */
-  private convertJsonConfig(config: JsonRegistrationConfig, classRegistry: Record<string, ClassConstructor>): RegistrationConfig {
-    const convertedConfig: RegistrationConfig = {
+  private convertJsonConfig(config: JsonRegistrationConfig, classRegistry: Record<string, ClassConstructor>): ServiceConfig {
+    const convertedConfig: ServiceConfig = {
       key: config.key,
       type: config.type,
       lifetime: config.lifetime,

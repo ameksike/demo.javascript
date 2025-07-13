@@ -6,32 +6,34 @@ import { Lifetime } from 'awilix';
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 /**
- * Dependency configuration for nested dependencies - can be inline or reference
+ * Unified service configuration for dependency injection.
+ * Used for both main service registration and nested dependency configuration.
+ * 
+ * This unified type simplifies the concept by eliminating redundancy between
+ * DependencyConfig and RegistrationConfig, which had identical structures.
  */
-export type DependencyConfig = {
-  key?: string;                              // The key to register the dependency
+export type ServiceConfig = {
+  key?: string;                              // The key to register the dependency; if not provided, inferred from class name or string
   target: any;                               // The target: Class, function, value, alias, string, or reference key
-  type?: 'class' | 'value' | 'function' | 'alias' | 'ref'; // The type of dependency being registered; 'ref' for references
-  lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency
+  type?: 'class' | 'value' | 'function' | 'alias' | 'ref'; // The type of dependency being registered; defaults to 'class'
+  lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency; defaults to 'transient'
   path?: string;                             // Path for dynamic imports if the target is a string
   file?: string;                             // Direct file path for module imports (takes precedence over path/target combination)
   args?: JsonValue[];                        // Arguments to pass to class constructor when type is 'class'
-  dependencies?: DependencyConfig[];         // Nested dependencies as array
+  dependencies?: ServiceConfig[];            // Nested dependencies as array
 };
 
 /**
- * Configuration object for registering dependencies with enhanced support for class arguments and nested dependencies.
+ * @deprecated Use ServiceConfig instead. This type is kept for backward compatibility.
+ * Will be removed in a future version.
  */
-export type RegistrationConfig = {
-  key?: string;                              // The key to register the dependency; if not provided, inferred from class name or string.
-  target: any;                               // The target to register: Class, function, value, alias, or string (for dynamic imports).
-  type?: 'class' | 'value' | 'function' | 'alias' | 'ref'; // The type of dependency being registered; defaults to 'class'.
-  lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency; defaults to 'transient'.
-  path?: string;                             // Path for dynamic imports if the target is a string.
-  file?: string;                             // Direct file path for module imports (takes precedence over path/target combination)
-  args?: JsonValue[];                        // Arguments to pass to class constructor when type is 'class'
-  dependencies?: DependencyConfig[];         // Array of dependencies to register and inject
-};
+export type RegistrationConfig = ServiceConfig;
+
+/**
+ * @deprecated Use ServiceConfig instead. This type is kept for backward compatibility.
+ * Will be removed in a future version.
+ */
+export type DependencyConfig = ServiceConfig;
 
 /**
  * Enhanced registration configuration for JSON serialization
@@ -64,9 +66,9 @@ export type DependencyFunction<T = any> = (...args: any[]) => T;
 export interface IIoC {
   /**
    * Registers dependencies based on the provided configuration objects.
-   * @param configs - An array of registration configurations.
+   * @param configs - An array of service configurations.
    */
-  register(configs: RegistrationConfig[]): Promise<void>;
+  register(configs: ServiceConfig[]): Promise<void>;
 
   /**
    * Registers dependencies from JSON configuration
