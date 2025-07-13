@@ -300,6 +300,26 @@ src/
 - **BusinessService**: Complex service demonstrating deep injection
 - **Auto-registered services**: DataManager, Calculator, Greeter, App
 
+## 📚 Detailed Documentation
+
+For comprehensive documentation of the core modules, please refer to:
+
+### IoC Container Documentation
+📖 **[IoC Container - Advanced Guide](src/tools/ioc/README.md)**
+- Complete ServiceConfig interface documentation
+- Advanced registration patterns and examples
+- Auto-registration deep dive
+- Performance optimization strategies
+- Testing and development best practices
+
+### Logger System Documentation  
+📖 **[Logger System - Complete Guide](src/tools/log/README.md)**
+- Modular logging architecture
+- Available processors (Console, MongoDB, File, Hybrid)
+- Custom processor development
+- Dynamic configuration examples
+- Log levels and categorization
+
 ## 🔧 Performance Optimizations
 
 ### Caching Strategy

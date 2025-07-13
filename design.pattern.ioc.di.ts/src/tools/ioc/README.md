@@ -1,17 +1,18 @@
 # Enhanced IoC (Inversion of Control) Library
 
-A powerful, simplified, and feature-rich dependency injection system built on top of Awilix. This library provides significant improvements for class instantiation, nested dependencies, JSON-serializable configuration, and flow-based logging integration.
+A powerful, simplified, and feature-rich dependency injection system built on top of Awilix. This library provides significant improvements for class instantiation, nested dependencies, unified configuration, auto-registration, and performance optimizations.
 
 ## 🚀 Key Features
 
-- **✨ Simplified Class Registration** - Clean syntax with constructor arguments
-- **📦 JSON-Serializable Configuration** - Store configs in files or databases
-- **🔗 Nested Dependencies** - Complex dependency trees made easy  
-- **🏭 Factory Functions** - Advanced dependency injection patterns
-- **🔄 Lifecycle Management** - Singleton, transient, and scoped instances
+- **✨ Unified Configuration** - Single `ServiceConfig` interface for all scenarios
+- **🔄 Auto-Registration** - Automatic service discovery using regex patterns
+- **🏭 Async-First Design** - Async `resolve()` with auto-registration support
+- **📦 JSON-Serializable** - Store and load configurations from files or databases
+- **🔗 Nested Dependencies** - Complex dependency trees made easy
+- **🚀 Performance Optimized** - Fast path for common scenarios, intelligent caching
+- **⚡ Lifecycle Management** - Singleton, transient, and scoped instances
 - **📁 Dynamic Imports** - Load modules on demand
 - **🧪 Testing-Friendly** - Easy mock injection for unit tests
-- **⚡ High Performance** - Optimized for speed and memory efficiency
 
 ## 📋 Quick Start
 
@@ -25,14 +26,14 @@ npm install awilix
 ### Basic Usage
 
 ```typescript
-import { IoC, RegistrationConfig } from './tools/ioc';
+import { IoC, ServiceConfig } from './tools/ioc';
 import { Logger, LogLevel } from './tools/log';
 
 // Create container
 const container = new IoC();
 
-// Configure dependencies with simplified syntax
-const configs: RegistrationConfig[] = [
+// Configure dependencies with unified ServiceConfig
+const configs: ServiceConfig[] = [
   {
     key: 'logger',
     target: Logger,
@@ -42,62 +43,201 @@ const configs: RegistrationConfig[] = [
   }
 ];
 
-// Register and resolve
+// Register and resolve (async by default with auto-registration)
 await container.register(configs);
-const logger = container.resolve<Logger>('logger');
+const logger = await container.resolve<Logger>('logger');
 logger.info('IoC container is ready!');
 ```
 
-## 🔧 Configuration Options
+## 🔧 ServiceConfig Interface
 
-### RegistrationConfig (TypeScript/Runtime)
+The `ServiceConfig` interface is a unified configuration type that serves all registration scenarios:
 
 ```typescript
-type RegistrationConfig = {
-  key?: string;                              // Dependency key (auto-inferred if not provided)
-  target: any;                               // Class constructor, function, value, or string
-  type?: 'class' | 'value' | 'function' | 'alias'; // Registration type (default: 'class')
-  lifetime?: 'singleton' | 'transient' | 'scoped';  // Lifecycle management (default: 'transient')
-  path?: string;                             // Path for dynamic imports
-  args?: JsonValue[];                        // Arguments for class constructor
-  dependencies?: { [key: string]: RegistrationConfig }; // Nested dependencies
+export type ServiceConfig = {
+  key?: string;                              // Registration key
+  target?: any;                              // Class, function, value, or string
+  regex?: string;                            // Auto-registration pattern
+  type?: 'class' | 'value' | 'function' | 'alias' | 'ref' | 'auto';
+  lifetime?: 'singleton' | 'transient' | 'scoped';
+  path?: string;                             // Dynamic import path
+  file?: string;                             // Direct file path
+  args?: JsonValue[];                        // Constructor arguments
+  dependencies?: ServiceConfig[] | { [key: string]: ServiceConfig };
 };
 ```
 
-### JsonRegistrationConfig (JSON/Database Storage)
+### 🔑 Key Properties Explained
+
+#### **`key?: string`**
+The registration key for the service. If not provided, it will be inferred from the class name or target.
 
 ```typescript
-type JsonRegistrationConfig = {
-  key?: string;                              // Dependency key
-  target: string;                            // String reference to class/function
-  type?: 'class' | 'value' | 'function' | 'alias'; // Registration type
-  lifetime?: 'singleton' | 'transient' | 'scoped';  // Lifecycle management
-  path?: string;                             // Path for dynamic imports
-  args?: JsonValue[];                        // Arguments for class constructor
-  dependencies?: { [key: string]: JsonRegistrationConfig }; // Nested dependencies
-};
+{ key: 'userService', target: UserService }
+{ key: 'logger', target: Logger }
+// Auto-inferred: { target: UserService } → key: 'UserService'
 ```
 
-## 📖 Registration Types
+#### **`target?: any`**
+The service target - can be a class constructor, function, value, or string reference.
 
-### 1. Class Registration with Arguments
+```typescript
+{ target: UserService }              // Class constructor
+{ target: () => new Date() }         // Function
+{ target: 'Hello World' }            // Value
+{ target: 'userService' }            // String reference
+```
 
-**Before (verbose):**
+#### **`regex?: string`**
+Regular expression pattern for auto-registration. Used with `type: 'auto'`.
+
+```typescript
+{ type: 'auto', regex: '.*Service\\.ts$' }    // Match *Service.ts files
+{ type: 'auto', regex: '.*Controller\\.ts$' } // Match *Controller.ts files
+{ type: 'auto', regex: '.*Repository\\.ts$' } // Match *Repository.ts files
+{ type: 'auto' }                              // Default: '.*' (all files)
+```
+
+#### **`type?: 'class' | 'value' | 'function' | 'alias' | 'ref' | 'auto'`**
+Defines how the service should be registered:
+
+- **`'class'`** (default): Registers a class constructor
+- **`'value'`**: Registers a static value or primitive
+- **`'function'`**: Registers a function that returns a value
+- **`'alias'`**: Creates an alias to an existing service
+- **`'ref'`**: References another registered service
+- **`'auto'`**: Enables auto-registration using regex patterns
+
+```typescript
+{ type: 'class', target: UserService }
+{ type: 'value', target: 'production' }
+{ type: 'function', target: () => new Date() }
+{ type: 'alias', target: 'userService' }
+{ type: 'auto', regex: '.*Service\\.ts$' }
+```
+
+#### **`lifetime?: 'singleton' | 'transient' | 'scoped'`**
+Controls instance lifecycle and caching behavior:
+
+##### **`'singleton'` - Single Instance Pattern**
+- **Behavior**: One instance for the entire application lifetime
+- **Memory**: Low footprint, instance cached and reused
+- **Performance**: Fastest resolution after initial creation
+- **Thread Safety**: Same instance shared across all consumers
+
+**Best for:**
+- Stateless services (no mutable state)
+- Configuration objects and settings
+- Loggers and monitoring services
+- Database connection pools
+- Utility services and API clients
+
+**Example:**
+```typescript
+{ key: 'logger', target: Logger, lifetime: 'singleton' }
+{ key: 'config', target: AppConfig, lifetime: 'singleton' }
+{ key: 'dbPool', target: DatabasePool, lifetime: 'singleton' }
+```
+
+##### **`'transient'` - New Instance Pattern (Default)**
+- **Behavior**: New instance created on every resolve() call
+- **Memory**: Higher usage, no caching
+- **Performance**: Slower due to repeated instantiation
+- **Isolation**: Complete isolation between consumers
+
+**Best for:**
+- Services with mutable state
+- Request handlers and controllers
+- Temporary objects and processors
+- Services needing isolation
+- Command objects and event handlers
+
+**Example:**
+```typescript
+{ key: 'requestHandler', target: RequestHandler, lifetime: 'transient' }
+{ key: 'validator', target: DataValidator, lifetime: 'transient' }
+{ key: 'processor', target: DataProcessor, lifetime: 'transient' }
+```
+
+##### **`'scoped'` - Per-Scope Instance Pattern**
+- **Behavior**: One instance per scope (request/transaction)
+- **Memory**: Moderate usage, cached within scope
+- **Performance**: Good balance between singleton and transient
+- **Isolation**: Shared within scope, isolated between scopes
+
+**Best for:**
+- Request-specific services
+- Database transaction contexts
+- User authentication services
+- Request-scoped caches
+- Services needing request-level state
+
+**Example:**
+```typescript
+{ key: 'userContext', target: UserContext, lifetime: 'scoped' }
+{ key: 'requestCache', target: RequestCache, lifetime: 'scoped' }
+{ key: 'authService', target: AuthService, lifetime: 'scoped' }
+```
+
+#### **`path?: string`**
+Path for dynamic imports when target is a string reference.
+
+```typescript
+{ key: 'userService', target: 'UserService', path: './services' }
+```
+
+#### **`file?: string`**
+Direct file path for module imports. Takes precedence over path/target combination.
+
+```typescript
+{ key: 'config', file: './config/database.ts' }
+```
+
+#### **`args?: JsonValue[]`**
+Static arguments passed to class constructors. Passed before any injected dependencies.
+
 ```typescript
 { 
-  key: 'logger', 
-  target: () => new Logger({ level: LogLevel.INFO, category: 'MAIN' }), 
-  type: 'function', 
-  lifetime: 'singleton' 
+  key: 'database', 
+  target: Database, 
+  args: ['localhost', 5432, 'mydb'] 
 }
 ```
 
-**After (clean):**
+#### **`dependencies?: ServiceConfig[] | { [key: string]: ServiceConfig }`**
+Nested dependencies configuration. Supports both array and object formats.
+
 ```typescript
-{ 
-  key: 'logger', 
-  target: Logger, 
-  type: 'class', 
+// Array format
+{
+  key: 'userService',
+  target: UserService,
+  dependencies: [
+    { key: 'logger', target: Logger },
+    { key: 'database', target: Database }
+  ]
+}
+
+// Object format
+{
+  key: 'userService',
+  target: UserService,
+  dependencies: {
+    logger: { target: Logger },
+    database: { target: Database }
+  }
+}
+```
+
+## 📖 Registration Examples
+
+### 1. Class Registration with Arguments
+
+```typescript
+{
+  key: 'logger',
+  target: Logger,
+  type: 'class',
   lifetime: 'singleton',
   args: [{ level: LogLevel.INFO, category: 'MAIN' }]
 }
@@ -148,637 +288,1116 @@ type JsonRegistrationConfig = {
 
 ```typescript
 {
-  key: 'primaryLogger',
+  key: 'mainLogger',
   target: 'logger',
   type: 'alias'
 }
 ```
 
-### 6. Dynamic Imports
+### 6. Auto-Registration (New Feature)
 
 ```typescript
 {
-  key: 'userService',
-  target: 'UserService',
-  type: 'class',
-  path: './services',
-  lifetime: 'transient'
+  type: 'auto',
+  regex: '.*Service\\.ts$',
+  lifetime: 'singleton'
 }
 ```
 
-## 🏗️ Advanced Configuration Patterns
+## 🔄 Auto-Registration
 
-### Complex Service with Dependencies
+Auto-registration automatically discovers and registers services based on regex patterns:
 
 ```typescript
-class UserService {
-  constructor(dependencies: { 
-    dbService: DatabaseService; 
-    emailService: EmailService; 
-    logger: Logger 
-  }) {
-    // Implementation
-  }
-}
+const configs: ServiceConfig[] = [
+  // Auto-register all services
+  { type: 'auto', regex: '.*Service\\.ts$' },
+  
+  // Auto-register controllers
+  { type: 'auto', regex: '.*Controller\\.ts$', lifetime: 'transient' },
+  
+  // Auto-register repositories as singletons
+  { type: 'auto', regex: '.*Repository\\.ts$', lifetime: 'singleton' }
+];
 
-// Registration using factory function
-{
-  key: 'userService',
-  target: (cradle: any) => new UserService({
-    dbService: cradle.dbService,
-    emailService: cradle.emailService,
-    logger: cradle.logger
-  }),
-  type: 'function',
-  lifetime: 'transient'
-}
+await container.register(configs);
+
+// Services are automatically registered when first resolved
+const userService = await container.resolve<UserService>('UserService');
 ```
 
-### Nested Dependencies (Planned Feature)
+## 🔗 Nested Dependencies
+
+The IoC container supports complex nested dependency configurations in multiple formats, allowing for flexible and maintainable dependency trees.
+
+### Array Format (Recommended)
+
+The array format is the most straightforward and provides clear dependency ordering:
 
 ```typescript
 {
   key: 'userService',
   target: UserService,
-  type: 'class',
-  lifetime: 'transient',
+  dependencies: [
+    { key: 'logger', target: Logger, lifetime: 'singleton' },
+    { key: 'database', target: Database, lifetime: 'singleton' },
+    { key: 'validator', target: UserValidator, lifetime: 'transient' }
+  ]
+}
+```
+
+### Object Format
+
+The object format allows for named dependencies and is useful for complex scenarios:
+
+```typescript
+{
+  key: 'orderService',
+  target: OrderService,
   dependencies: {
-    dbService: {
-      key: 'databaseService',
-      target: DatabaseService,
-      type: 'class',
-      args: ['postgresql://localhost:5432/mydb', 25]
+    logger: { target: Logger, lifetime: 'singleton' },
+    database: { target: Database, lifetime: 'singleton' },
+    paymentGateway: { 
+      target: PaymentGateway, 
+      lifetime: 'singleton',
+      args: ['stripe', 'sk_test_123'] 
     },
-    emailService: {
-      key: 'emailService',
-      target: EmailService,
-      type: 'class'
+    emailService: { 
+      target: EmailService, 
+      lifetime: 'singleton',
+      dependencies: [
+        { key: 'logger', target: Logger, lifetime: 'singleton' }
+      ]
     }
   }
 }
 ```
 
-## 📦 JSON Configuration
+### Multi-Level Nesting
 
-### Basic JSON Configuration
-
-```typescript
-// Class registry for JSON configs
-const classRegistry: { [key: string]: ClassConstructor } = {
-  Logger,
-  DatabaseService,
-  EmailService,
-  UserService
-};
-
-// JSON configuration
-const jsonConfigs: JsonRegistrationConfig[] = [
-  {
-    key: 'logger',
-    target: 'Logger',
-    type: 'class',
-    lifetime: 'singleton',
-    args: [{ level: 4, category: 'JSON' }]
-  },
-  {
-    key: 'dbService',
-    target: 'DatabaseService',
-    type: 'class',
-    lifetime: 'singleton',
-    args: ['mongodb://localhost:27017/jsondb', 15]
-  }
-];
-
-await container.registerFromJson(jsonConfigs, classRegistry);
-```
-
-### File-based Configuration
+Complex applications often require deep dependency hierarchies:
 
 ```typescript
-// Save current configuration
-await container.saveToJsonFile('./config/ioc-config.json');
-
-// Load configuration from file
-await container.loadFromJsonFile('./config/ioc-config.json', classRegistry);
-```
-
-### MongoDB Configuration Storage
-
-```typescript
-// Store in MongoDB
-const mongoConfig = {
-  environment: 'production',
-  services: [
+{
+  key: 'applicationService',
+  target: ApplicationService,
+  dependencies: [
     {
-      key: 'logger',
-      target: 'Logger',
-      type: 'class',
-      lifetime: 'singleton',
-      args: [{ level: 1, category: 'PROD' }]
+      key: 'userModule',
+      target: UserModule,
+      dependencies: [
+        { key: 'userRepository', target: UserRepository, lifetime: 'singleton' },
+        { key: 'userValidator', target: UserValidator, lifetime: 'transient' },
+        {
+          key: 'authService',
+          target: AuthService,
+          dependencies: [
+            { key: 'jwtService', target: JWTService, lifetime: 'singleton' },
+            { key: 'passwordService', target: PasswordService, lifetime: 'singleton' }
+          ]
+        }
+      ]
+    },
+    {
+      key: 'orderModule',
+      target: OrderModule,
+      dependencies: [
+        { key: 'orderRepository', target: OrderRepository, lifetime: 'singleton' },
+        { key: 'inventoryService', target: InventoryService, lifetime: 'singleton' },
+        { key: 'paymentProcessor', target: PaymentProcessor, lifetime: 'transient' }
+      ]
     }
   ]
+}
+```
+
+### Conditional Dependencies
+
+Dependencies can be conditionally registered based on environment or configuration:
+
+```typescript
+const getDatabaseConfig = (env: string): ServiceConfig => {
+  if (env === 'production') {
+    return {
+      key: 'database',
+      target: PostgreSQLDatabase,
+      lifetime: 'singleton',
+      args: [process.env.DATABASE_URL]
+    };
+  }
+  return {
+    key: 'database',
+    target: SQLiteDatabase,
+    lifetime: 'singleton',
+    args: [':memory:']
+  };
 };
 
-await db.collection('ioc-configs').insertOne(mongoConfig);
-
-// Load from MongoDB
-const config = await db.collection('ioc-configs').findOne({ environment: 'production' });
-await container.registerFromJson(config.services, classRegistry);
+const configs: ServiceConfig[] = [
+  {
+    key: 'userService',
+    target: UserService,
+    dependencies: [
+      getDatabaseConfig(process.env.NODE_ENV || 'development'),
+      { key: 'logger', target: Logger, lifetime: 'singleton' }
+    ]
+  }
+];
 ```
 
-## 🔄 Lifecycle Management
+### Factory Function Dependencies
 
-### Singleton Pattern
-- **Single instance** throughout application lifecycle
-- **Shared state** across all consumers
-- **Best for**: Services, loggers, configurations, database connections
+For complex initialization logic, use factory functions with dependencies:
 
 ```typescript
 {
-  key: 'logger',
-  target: Logger,
-  type: 'class',
+  key: 'complexService',
+  target: (cradle: any) => {
+    const config = cradle.config;
+    const logger = cradle.logger;
+    const database = cradle.database;
+    
+    // Complex initialization logic
+    const service = new ComplexService(config, logger);
+    service.setDatabase(database);
+    service.initialize();
+    
+    return service;
+  },
+  type: 'function',
   lifetime: 'singleton',
-  args: [{ level: LogLevel.INFO }]
+  dependencies: [
+    { key: 'config', target: AppConfig, lifetime: 'singleton' },
+    { key: 'logger', target: Logger, lifetime: 'singleton' },
+    { key: 'database', target: Database, lifetime: 'singleton' }
+  ]
 }
 ```
 
-### Transient Pattern
-- **New instance** for each resolution
-- **No shared state** between consumers
-- **Best for**: Data transfer objects, request handlers, temporary objects
+## 🧪 Integration Testing
+
+The IoC container is designed to be testing-friendly, supporting easy mock injection and test isolation.
+
+### Basic Test Setup
 
 ```typescript
-{
-  key: 'requestHandler',
-  target: RequestHandler,
-  type: 'class',
-  lifetime: 'transient'
-}
-```
-
-### Scoped Pattern
-- **Single instance per scope** (e.g., HTTP request)
-- **Shared within scope**, isolated between scopes
-- **Best for**: Request-specific services, user sessions
-
-```typescript
-{
-  key: 'sessionService',
-  target: SessionService,
-  type: 'class',
-  lifetime: 'scoped'
-}
-
-// Usage with scopes
-const scope = container.createScope();
-const sessionService1 = scope.resolve('sessionService');
-const sessionService2 = scope.resolve('sessionService');
-// sessionService1 === sessionService2 (same scope)
-```
-
-## 🧪 Testing Strategies
-
-### Mock Dependencies
-
-```typescript
-// Production config
-const prodConfigs: RegistrationConfig[] = [
-  {
-    key: 'logger',
-    target: Logger,
-    type: 'class',
-    lifetime: 'singleton',
-    args: [{ level: LogLevel.INFO }]
-  }
-];
-
-// Test config with mocks
-const testConfigs: RegistrationConfig[] = [
-  {
-    key: 'logger',
-    target: MockLogger, // Mock implementation
-    type: 'class',
-    lifetime: 'singleton'
-  }
-];
-
-// Easy switching between configs
-const container = new IoC();
-await container.register(process.env.NODE_ENV === 'test' ? testConfigs : prodConfigs);
-```
-
-### Integration Testing
-
-```typescript
-describe('UserService Integration', () => {
+describe('UserService Integration Tests', () => {
   let container: IoC;
   let userService: UserService;
-
+  
   beforeEach(async () => {
     container = new IoC();
-    await container.register([
-      { key: 'logger', target: MockLogger, type: 'class', lifetime: 'singleton' },
-      { key: 'dbService', target: TestDatabaseService, type: 'class', lifetime: 'singleton' },
-      { 
-        key: 'userService', 
-        target: (cradle: any) => new UserService({
-          dbService: cradle.dbService,
-          logger: cradle.logger
-        }),
-        type: 'function',
-        lifetime: 'transient'
-      }
-    ]);
     
-    userService = container.resolve<UserService>('userService');
+    // Register test configuration
+    const testConfigs: ServiceConfig[] = [
+      {
+        key: 'database',
+        target: InMemoryDatabase,
+        lifetime: 'singleton'
+      },
+      {
+        key: 'logger',
+        target: TestLogger,
+        lifetime: 'singleton'
+      },
+      {
+        key: 'userService',
+        target: UserService,
+        dependencies: [
+          { key: 'database', target: InMemoryDatabase },
+          { key: 'logger', target: TestLogger }
+        ]
+      }
+    ];
+    
+    await container.register(testConfigs);
+    userService = await container.resolve<UserService>('userService');
   });
-
-  it('should create user successfully', async () => {
-    const result = await userService.createUser('test@example.com', 'Test User');
-    expect(result).toBeTruthy();
+  
+  afterEach(() => {
+    container.unregister(['userService', 'database', 'logger']);
+  });
+  
+  test('should create user successfully', async () => {
+    const userData = { name: 'John Doe', email: 'john@example.com' };
+    const user = await userService.createUser(userData);
+    
+    expect(user.id).toBeDefined();
+    expect(user.name).toBe('John Doe');
   });
 });
 ```
 
-## 🛠️ API Reference
+### Mock Injection
 
-### IoC Container Methods
-
-#### `register(configs: RegistrationConfig[]): Promise<void>`
-Registers multiple dependencies based on configuration objects.
+Replace real services with mocks for isolated testing:
 
 ```typescript
-await container.register([
-  { key: 'logger', target: Logger, type: 'class', args: [config] }
-]);
+describe('OrderService with Mocks', () => {
+  let container: IoC;
+  let orderService: OrderService;
+  let mockPaymentGateway: jest.Mocked<PaymentGateway>;
+  let mockEmailService: jest.Mocked<EmailService>;
+  
+  beforeEach(async () => {
+    container = new IoC();
+    
+    // Create mocks
+    mockPaymentGateway = {
+      processPayment: jest.fn().mockResolvedValue({ success: true, transactionId: '123' }),
+      refundPayment: jest.fn().mockResolvedValue({ success: true })
+    };
+    
+    mockEmailService = {
+      sendEmail: jest.fn().mockResolvedValue(true),
+      sendOrderConfirmation: jest.fn().mockResolvedValue(true)
+    };
+    
+    const testConfigs: ServiceConfig[] = [
+      {
+        key: 'paymentGateway',
+        target: mockPaymentGateway,
+        type: 'value'
+      },
+      {
+        key: 'emailService',
+        target: mockEmailService,
+        type: 'value'
+      },
+      {
+        key: 'orderService',
+        target: OrderService,
+        dependencies: [
+          { key: 'paymentGateway', target: mockPaymentGateway, type: 'value' },
+          { key: 'emailService', target: mockEmailService, type: 'value' }
+        ]
+      }
+    ];
+    
+    await container.register(testConfigs);
+    orderService = await container.resolve<OrderService>('orderService');
+  });
+  
+  test('should process order and send confirmation', async () => {
+    const order = { id: '1', total: 100, items: [] };
+    
+    await orderService.processOrder(order);
+    
+    expect(mockPaymentGateway.processPayment).toHaveBeenCalledWith(order);
+    expect(mockEmailService.sendOrderConfirmation).toHaveBeenCalledWith(order);
+  });
+});
 ```
 
-#### `registerFromJson(configs: JsonRegistrationConfig[], classRegistry: ClassRegistry): Promise<void>`
-Registers dependencies from JSON configuration using a class registry.
+### Environment-Specific Testing
+
+Test different configurations for various environments:
 
 ```typescript
-await container.registerFromJson(jsonConfigs, { Logger, DatabaseService });
+describe('Environment-Specific Tests', () => {
+  const testEnvironments = ['development', 'staging', 'production'];
+  
+  testEnvironments.forEach(env => {
+    describe(`${env} environment`, () => {
+      let container: IoC;
+      
+      beforeEach(async () => {
+        container = new IoC();
+        
+        const configs = getEnvironmentConfig(env);
+        await container.register(configs);
+      });
+      
+      test('should have correct database configuration', async () => {
+        const database = await container.resolve<Database>('database');
+        
+        if (env === 'production') {
+          expect(database.constructor.name).toBe('PostgreSQLDatabase');
+        } else {
+          expect(database.constructor.name).toBe('SQLiteDatabase');
+        }
+      });
+    });
+  });
+});
 ```
 
-#### `resolve<T>(key: string): T`
-Resolves a dependency by key with type safety.
+### Integration with Testing Frameworks
+
+#### Jest Integration
 
 ```typescript
-const logger = container.resolve<Logger>('logger');
-const service = container.resolve('userService'); // without type
-```
+// jest.setup.ts
+import { IoC } from './src/tools/ioc';
 
-#### `unregister(keys: string[]): void`
-Unregisters dependencies by their keys.
-
-```typescript
-container.unregister(['temporaryService', 'oldLogger']);
-```
-
-#### `isRegistered(key: string): boolean`
-Checks if a dependency is registered.
-
-```typescript
-if (container.isRegistered('logger')) {
-  const logger = container.resolve('logger');
+declare global {
+  var testContainer: IoC;
 }
+
+beforeEach(() => {
+  global.testContainer = new IoC();
+});
+
+afterEach(() => {
+  if (global.testContainer) {
+    global.testContainer.unregister(global.testContainer.getRegisteredKeys());
+  }
+});
+
+// test helper
+export const createTestContainer = async (configs: ServiceConfig[]): Promise<IoC> => {
+  const container = new IoC();
+  await container.register(configs);
+  return container;
+};
 ```
 
-#### `getRegisteredKeys(): string[]`
-Returns all registered dependency keys.
+#### Mocha Integration
+
+```typescript
+// test-helpers.ts
+import { IoC, ServiceConfig } from './src/tools/ioc';
+
+export class TestContainerManager {
+  private containers: IoC[] = [];
+  
+  async createContainer(configs: ServiceConfig[]): Promise<IoC> {
+    const container = new IoC();
+    await container.register(configs);
+    this.containers.push(container);
+    return container;
+  }
+  
+  cleanup(): void {
+    this.containers.forEach(container => {
+      container.unregister(container.getRegisteredKeys());
+    });
+    this.containers = [];
+  }
+}
+
+// In your test files
+describe('Service Tests', () => {
+  const testManager = new TestContainerManager();
+  
+  afterEach(() => {
+    testManager.cleanup();
+  });
+  
+  it('should work with test container', async () => {
+    const container = await testManager.createContainer([
+      { key: 'service', target: MyService }
+    ]);
+    
+    const service = await container.resolve<MyService>('service');
+    expect(service).toBeDefined();
+  });
+});
+```
+
+## 🌍 Real-World Examples
+
+### E-commerce Application
+
+A complete e-commerce system with multiple modules and complex dependencies:
+
+```typescript
+// E-commerce IoC Configuration
+const ecommerceConfigs: ServiceConfig[] = [
+  // Core Infrastructure
+  {
+    key: 'database',
+    target: PostgreSQLDatabase,
+    lifetime: 'singleton',
+    args: [process.env.DATABASE_URL]
+  },
+  {
+    key: 'cache',
+    target: RedisCache,
+    lifetime: 'singleton',
+    args: [process.env.REDIS_URL]
+  },
+  {
+    key: 'logger',
+    target: WinstonLogger,
+    lifetime: 'singleton',
+    args: [{ level: 'info', service: 'ecommerce' }]
+  },
+  
+  // User Management Module
+  {
+    key: 'userRepository',
+    target: UserRepository,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'database', target: PostgreSQLDatabase },
+      { key: 'logger', target: WinstonLogger }
+    ]
+  },
+  {
+    key: 'authService',
+    target: AuthService,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'userRepository', target: UserRepository },
+      { key: 'jwtService', target: JWTService, lifetime: 'singleton' },
+      { key: 'passwordService', target: PasswordService, lifetime: 'singleton' }
+    ]
+  },
+  
+  // Product Management Module
+  {
+    key: 'productRepository',
+    target: ProductRepository,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'database', target: PostgreSQLDatabase },
+      { key: 'cache', target: RedisCache }
+    ]
+  },
+  {
+    key: 'inventoryService',
+    target: InventoryService,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'productRepository', target: ProductRepository },
+      { key: 'logger', target: WinstonLogger }
+    ]
+  },
+  
+  // Order Processing Module
+  {
+    key: 'orderRepository',
+    target: OrderRepository,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'database', target: PostgreSQLDatabase }
+    ]
+  },
+  {
+    key: 'paymentGateway',
+    target: StripePaymentGateway,
+    lifetime: 'singleton',
+    args: [process.env.STRIPE_SECRET_KEY]
+  },
+  {
+    key: 'orderService',
+    target: OrderService,
+    lifetime: 'transient',
+    dependencies: [
+      { key: 'orderRepository', target: OrderRepository },
+      { key: 'inventoryService', target: InventoryService },
+      { key: 'paymentGateway', target: StripePaymentGateway },
+      { key: 'emailService', target: EmailService },
+      { key: 'logger', target: WinstonLogger }
+    ]
+  },
+  
+  // Notification Services
+  {
+    key: 'emailService',
+    target: SendGridEmailService,
+    lifetime: 'singleton',
+    args: [process.env.SENDGRID_API_KEY],
+    dependencies: [
+      { key: 'logger', target: WinstonLogger }
+    ]
+  },
+  {
+    key: 'smsService',
+    target: TwilioSMSService,
+    lifetime: 'singleton',
+    args: [process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN]
+  },
+  
+  // Auto-register controllers
+  { type: 'auto', regex: '.*Controller\\.ts$', lifetime: 'transient' },
+  
+  // Auto-register middleware
+  { type: 'auto', regex: '.*Middleware\\.ts$', lifetime: 'singleton' }
+];
+
+// Initialize the container
+const container = new IoC();
+await container.register(ecommerceConfigs);
+
+// Use in Express.js application
+app.use(async (req, res, next) => {
+  req.container = container.createScope();
+  next();
+});
+```
+
+### Microservices Architecture
+
+Configuration for a microservice with external dependencies:
+
+```typescript
+// User Service Microservice
+const userServiceConfigs: ServiceConfig[] = [
+  // Database
+  {
+    key: 'userDatabase',
+    target: MongoDB,
+    lifetime: 'singleton',
+    args: [process.env.MONGODB_URI]
+  },
+  
+  // External Services
+  {
+    key: 'authServiceClient',
+    target: AuthServiceClient,
+    lifetime: 'singleton',
+    args: [process.env.AUTH_SERVICE_URL],
+    dependencies: [
+      { key: 'httpClient', target: AxiosHttpClient, lifetime: 'singleton' }
+    ]
+  },
+  {
+    key: 'notificationServiceClient',
+    target: NotificationServiceClient,
+    lifetime: 'singleton',
+    args: [process.env.NOTIFICATION_SERVICE_URL]
+  },
+  
+  // Message Queue
+  {
+    key: 'messageQueue',
+    target: RabbitMQClient,
+    lifetime: 'singleton',
+    args: [process.env.RABBITMQ_URL]
+  },
+  
+  // Business Logic
+  {
+    key: 'userService',
+    target: UserService,
+    lifetime: 'transient',
+    dependencies: [
+      { key: 'userDatabase', target: MongoDB },
+      { key: 'authServiceClient', target: AuthServiceClient },
+      { key: 'messageQueue', target: RabbitMQClient },
+      { key: 'logger', target: Logger, lifetime: 'singleton' }
+    ]
+  },
+  
+  // Event Handlers
+  {
+    key: 'userEventHandler',
+    target: UserEventHandler,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'userService', target: UserService },
+      { key: 'messageQueue', target: RabbitMQClient }
+    ]
+  }
+];
+```
+
+### GraphQL API Server
+
+IoC configuration for a GraphQL API with complex resolvers:
+
+```typescript
+// GraphQL Server Configuration
+const graphQLConfigs: ServiceConfig[] = [
+  // Data Layer
+  {
+    key: 'prisma',
+    target: PrismaClient,
+    lifetime: 'singleton'
+  },
+  {
+    key: 'redis',
+    target: RedisClient,
+    lifetime: 'singleton',
+    args: [process.env.REDIS_URL]
+  },
+  
+  // Repositories
+  {
+    key: 'userRepository',
+    target: UserRepository,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'prisma', target: PrismaClient }
+    ]
+  },
+  {
+    key: 'postRepository',
+    target: PostRepository,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'prisma', target: PrismaClient }
+    ]
+  },
+  
+  // Services
+  {
+    key: 'userService',
+    target: UserService,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'userRepository', target: UserRepository },
+      { key: 'redis', target: RedisClient }
+    ]
+  },
+  {
+    key: 'postService',
+    target: PostService,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'postRepository', target: PostRepository },
+      { key: 'userService', target: UserService }
+    ]
+  },
+  
+  // GraphQL Resolvers
+  {
+    key: 'userResolver',
+    target: UserResolver,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'userService', target: UserService }
+    ]
+  },
+  {
+    key: 'postResolver',
+    target: PostResolver,
+    lifetime: 'singleton',
+    dependencies: [
+      { key: 'postService', target: PostService }
+    ]
+  },
+  
+  // Context Factory
+  {
+    key: 'contextFactory',
+    target: (cradle: any) => ({
+      user: cradle.userService,
+      post: cradle.postService,
+      db: cradle.prisma
+    }),
+    type: 'function',
+    lifetime: 'singleton'
+  }
+];
+
+// GraphQL Server Setup
+const container = new IoC();
+await container.register(graphQLConfigs);
+
+const server = new ApolloServer({
+  typeDefs,
+  resolvers: {
+    Query: {
+      users: await container.resolve('userResolver'),
+      posts: await container.resolve('postResolver')
+    }
+  },
+  context: async () => {
+    const contextFactory = await container.resolve('contextFactory');
+    return contextFactory();
+  }
+});
+```
+
+### Multi-Tenant SaaS Application
+
+Configuration for a multi-tenant application with tenant-specific services:
+
+```typescript
+// Multi-Tenant Configuration Factory
+const createTenantContainer = async (tenantId: string): Promise<IoC> => {
+  const container = new IoC();
+  
+  const tenantConfigs: ServiceConfig[] = [
+    // Tenant-specific database
+    {
+      key: 'tenantDatabase',
+      target: TenantDatabase,
+      lifetime: 'singleton',
+      args: [tenantId, process.env.DATABASE_URL]
+    },
+    
+    // Tenant-specific cache
+    {
+      key: 'tenantCache',
+      target: TenantCache,
+      lifetime: 'singleton',
+      args: [tenantId, process.env.REDIS_URL]
+    },
+    
+    // Tenant-specific services
+    {
+      key: 'tenantService',
+      target: TenantService,
+      lifetime: 'singleton',
+      dependencies: [
+        { key: 'tenantDatabase', target: TenantDatabase },
+        { key: 'tenantCache', target: TenantCache }
+      ]
+    },
+    
+    // Shared services
+    {
+      key: 'auditService',
+      target: AuditService,
+      lifetime: 'singleton',
+      dependencies: [
+        { key: 'auditDatabase', target: AuditDatabase, lifetime: 'singleton' }
+      ]
+    },
+    
+    // Auto-register tenant-specific modules
+    { type: 'auto', regex: `.*${tenantId}.*Service\\.ts$`, lifetime: 'singleton' }
+  ];
+  
+  await container.register(tenantConfigs);
+  return container;
+};
+
+// Usage in middleware
+app.use(async (req, res, next) => {
+  const tenantId = req.headers['x-tenant-id'] as string;
+  req.tenantContainer = await createTenantContainer(tenantId);
+  next();
+});
+```
+
+## 🚀 Container Methods
+
+### Core Methods
+
+#### **`register(configs: ServiceConfig[]): Promise<void>`**
+Registers multiple services using ServiceConfig objects.
+
+```typescript
+const configs: ServiceConfig[] = [
+  { key: 'logger', target: Logger, lifetime: 'singleton' },
+  { key: 'userService', target: UserService }
+];
+
+await container.register(configs);
+```
+
+#### **`resolve<T>(key: string): Promise<T>`**
+Resolves a service asynchronously with auto-registration support.
+
+```typescript
+const logger = await container.resolve<Logger>('logger');
+const userService = await container.resolve<UserService>('UserService'); // Auto-registered
+```
+
+#### **`resolveSync<T>(key: string): T`**
+Resolves a service synchronously without auto-registration.
+
+```typescript
+const logger = container.resolveSync<Logger>('logger');
+```
+
+#### **`registerFromJson(configs: ServiceConfig[], classRegistry?: ClassRegistry): Promise<void>`**
+Registers services from JSON configuration with optional class registry.
+
+```typescript
+const jsonConfigs: ServiceConfig[] = [
+  { key: 'logger', target: 'Logger', type: 'class' }
+];
+
+const classRegistry = {
+  Logger: Logger,
+  UserService: UserService
+};
+
+await container.registerFromJson(jsonConfigs, classRegistry);
+```
+
+#### **`unregister(keys: string[]): void`**
+Unregisters services from the container.
+
+```typescript
+container.unregister(['logger', 'userService']);
+```
+
+#### **`exportToJson(): ServiceConfig[]`**
+Exports current container configuration.
+
+```typescript
+const config = container.exportToJson();
+console.log('Container configuration:', config);
+```
+
+### Utility Methods
+
+#### **`getRegisteredKeys(): string[]`**
+Returns all registered service keys.
 
 ```typescript
 const keys = container.getRegisteredKeys();
 console.log('Registered services:', keys);
 ```
 
-#### `createScope(): AwilixContainer`
+#### **`isRegistered(key: string): boolean`**
+Checks if a service is registered.
+
+```typescript
+if (container.isRegistered('logger')) {
+  console.log('Logger is registered');
+}
+```
+
+#### **`createScope(): AwilixContainer`**
 Creates a new scope for scoped dependencies.
 
 ```typescript
 const scope = container.createScope();
-const scopedService = scope.resolve('sessionService');
 ```
 
-#### `saveToJsonFile(path: string): Promise<void>`
-Saves current configuration to a JSON file.
+## 💾 JSON Configuration
+
+### Loading from File
 
 ```typescript
-await container.saveToJsonFile('./config/production.json');
+// config.json
+[
+  {
+    "key": "logger",
+    "target": "Logger",
+    "type": "class",
+    "lifetime": "singleton",
+    "args": [{ "level": "INFO", "category": "APP" }]
+  }
+]
+
+// TypeScript
+const classRegistry = { Logger, UserService };
+await container.loadFromJsonFile('./config.json', classRegistry);
 ```
 
-#### `loadFromJsonFile(path: string, classRegistry: ClassRegistry): Promise<void>`
-Loads configuration from a JSON file.
+### Saving to File
 
 ```typescript
-await container.loadFromJsonFile('./config/production.json', classRegistry);
+await container.saveToJsonFile('./output-config.json');
 ```
 
-## 📊 Real-World Examples
+## 🧪 Testing
 
-### E-Commerce Application
+### Mock Injection
 
 ```typescript
-// Define services
-class PaymentService {
-  constructor(private logger: Logger, private config: PaymentConfig) {}
-  
-  async processPayment(amount: number): Promise<PaymentResult> {
-    this.logger.info({
-      message: 'Processing payment',
-      data: { amount, timestamp: new Date() }
-    });
-    // Implementation
-  }
-}
+// Test setup
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn()
+};
 
-class OrderService {
-  constructor(dependencies: {
-    paymentService: PaymentService;
-    inventoryService: InventoryService;
-    emailService: EmailService;
-    logger: Logger;
-  }) {
-    // Implementation
-  }
-}
-
-// Configuration
-const ecommerceConfig: RegistrationConfig[] = [
-  // Core services
-  {
-    key: 'logger',
-    target: Logger,
-    type: 'class',
-    lifetime: 'singleton',
-    args: [{ level: LogLevel.INFO, category: 'ECOMMERCE' }]
-  },
-  
-  // Configuration
-  {
-    key: 'paymentConfig',
-    target: {
-      apiKey: process.env.PAYMENT_API_KEY,
-      timeout: 30000,
-      retries: 3
-    },
-    type: 'value'
-  },
-  
-  // Payment service
-  {
-    key: 'paymentService',
-    target: (cradle: any) => new PaymentService(cradle.logger, cradle.paymentConfig),
-    type: 'function',
-    lifetime: 'singleton'
-  },
-  
-  // Order service with complex dependencies
-  {
-    key: 'orderService',
-    target: (cradle: any) => new OrderService({
-      paymentService: cradle.paymentService,
-      inventoryService: cradle.inventoryService,
-      emailService: cradle.emailService,
-      logger: cradle.logger
-    }),
-    type: 'function',
-    lifetime: 'transient'
-  }
+const testConfigs: ServiceConfig[] = [
+  { key: 'logger', target: mockLogger, type: 'value' }
 ];
 
-await container.register(ecommerceConfig);
+await container.register(testConfigs);
+
+// Test
+const service = await container.resolve<UserService>('userService');
+service.doSomething();
+expect(mockLogger.info).toHaveBeenCalled();
 ```
 
-### Microservices Architecture
+## 🔧 Advanced Patterns
+
+### Conditional Registration
 
 ```typescript
-// Service configuration for different environments
-const getServiceConfig = (environment: string): RegistrationConfig[] => {
-  const baseConfig = [
-    {
-      key: 'logger',
-      target: Logger,
-      type: 'class',
-      lifetime: 'singleton',
-      args: [{ 
-        level: environment === 'production' ? LogLevel.ERROR : LogLevel.DEBUG,
-        category: 'MICROSERVICE'
-      }]
-    }
+const configs: ServiceConfig[] = [
+  {
+    key: 'logger',
+    target: process.env.NODE_ENV === 'production' ? ProductionLogger : DevLogger,
+    type: 'class',
+    lifetime: 'singleton'
+  }
+];
+```
+
+### Environment-Specific Configuration
+
+```typescript
+const getServiceConfig = (environment: string): ServiceConfig[] => {
+  const baseConfigs: ServiceConfig[] = [
+    { key: 'logger', target: Logger, lifetime: 'singleton' }
   ];
 
   if (environment === 'production') {
     return [
-      ...baseConfig,
-      {
-        key: 'dbService',
-        target: DatabaseService,
-        type: 'class',
-        lifetime: 'singleton',
-        args: [process.env.PROD_DB_URL, 50]
-      }
-    ];
-  } else {
-    return [
-      ...baseConfig,
-      {
-        key: 'dbService',
-        target: MockDatabaseService,
-        type: 'class',
-        lifetime: 'singleton'
-      }
+      ...baseConfigs,
+      { key: 'cache', target: RedisCache, lifetime: 'singleton' }
     ];
   }
+
+  return [
+    ...baseConfigs,
+    { key: 'cache', target: MemoryCache, lifetime: 'singleton' }
+  ];
 };
-
-await container.register(getServiceConfig(process.env.NODE_ENV));
 ```
 
-## 🎯 Best Practices
+### Factory Pattern with Dependencies
 
-### 1. Naming Conventions
-```typescript
-// ✅ Good: Descriptive, consistent naming
-{ key: 'userAuthenticationService', target: UserAuthService, type: 'class' }
-{ key: 'databaseConnectionPool', target: DatabasePool, type: 'class' }
-
-// ❌ Avoid: Vague or inconsistent naming
-{ key: 'service1', target: SomeService, type: 'class' }
-{ key: 'DB', target: DatabaseService, type: 'class' }
-```
-
-### 2. Lifecycle Selection
-```typescript
-// ✅ Singleton for stateless services
-{ key: 'logger', target: Logger, type: 'class', lifetime: 'singleton' }
-{ key: 'configService', target: ConfigService, type: 'class', lifetime: 'singleton' }
-
-// ✅ Transient for stateful or request-specific objects
-{ key: 'userSession', target: UserSession, type: 'class', lifetime: 'transient' }
-{ key: 'requestHandler', target: RequestHandler, type: 'class', lifetime: 'transient' }
-
-// ✅ Scoped for request-scoped services
-{ key: 'requestContext', target: RequestContext, type: 'class', lifetime: 'scoped' }
-```
-
-### 3. Configuration Organization
-```typescript
-// ✅ Group related services
-const databaseConfigs: RegistrationConfig[] = [
-  { key: 'dbConnection', target: DatabaseConnection, type: 'class' },
-  { key: 'userRepository', target: UserRepository, type: 'class' },
-  { key: 'orderRepository', target: OrderRepository, type: 'class' }
-];
-
-const loggerConfigs: RegistrationConfig[] = [
-  { key: 'appLogger', target: Logger, type: 'class', args: [{ category: 'APP' }] },
-  { key: 'dbLogger', target: Logger, type: 'class', args: [{ category: 'DB' }] }
-];
-
-await container.register([...databaseConfigs, ...loggerConfigs]);
-```
-
-### 4. Error Handling
-```typescript
-try {
-  await container.register(configs);
-  const service = container.resolve<UserService>('userService');
-} catch (error) {
-  if (error.name === 'AwilixResolutionError') {
-    console.error('Dependency resolution failed:', error.message);
-    // Handle dependency resolution errors
-  } else {
-    console.error('Registration failed:', error.message);
-    // Handle registration errors
-  }
-}
-```
-
-## 🔗 Migration Guide
-
-### From Function-based Registration
-
-**Old approach:**
 ```typescript
 {
-  key: 'logger',
-  target: () => new Logger({ level: LogLevel.INFO, category: 'APP' }),
+  key: 'complexService',
+  target: (cradle: any) => new ComplexService(
+    cradle.logger,
+    cradle.database,
+    cradle.cache
+  ),
   type: 'function',
   lifetime: 'singleton'
 }
 ```
 
-**New approach:**
-```typescript
-{
-  key: 'logger',
-  target: Logger,
-  type: 'class',
-  lifetime: 'singleton',
-  args: [{ level: LogLevel.INFO, category: 'APP' }]
-}
-```
+## 📈 Performance Optimizations
 
-### From Manual Configuration to JSON
+### Built-in Optimizations
 
-**Step 1: Extract configuration**
-```typescript
-// Before: Hardcoded
-const configs = [
-  { key: 'logger', target: Logger, type: 'class', args: [{ level: LogLevel.INFO }] }
-];
+- **Fast Path**: `registerFromJson` uses fast path when no string targets need conversion
+- **Intelligent Caching**: Auto-registration cache prevents repeated file system operations
+- **Efficient Lookups**: Map-based storage for O(1) service resolution
+- **Minimal Object Creation**: Reduced memory allocations in hot paths
 
-// After: JSON-ready
-const jsonConfigs = [
-  { key: 'logger', target: 'Logger', type: 'class', args: [{ level: 4 }] }
-];
-```
+### Best Practices
 
-**Step 2: Create class registry**
-```typescript
-const classRegistry = { Logger, DatabaseService, EmailService };
-```
+1. **Use Singleton for Stateless Services**: Reduces memory and improves performance
+2. **Minimize Transient Services**: Use only when isolation is required
+3. **Batch Register**: Register multiple services in single `register()` call
+4. **Auto-Registration**: Use specific regex patterns to avoid unnecessary scans
 
-**Step 3: Use JSON configuration**
-```typescript
-await container.registerFromJson(jsonConfigs, classRegistry);
-```
+## 📊 Comparison with Previous Versions
 
-## 🚨 Troubleshooting
+| Feature | Previous | Current |
+|---------|----------|---------|
+| Configuration Types | `RegistrationConfig` + `JsonRegistrationConfig` | Unified `ServiceConfig` |
+| Primary Resolution | `resolveAsync()` | `resolve()` (with auto-registration) |
+| Auto-Registration | Manual | Built-in with regex patterns |
+| JSON Support | Separate interface | Unified interface |
+| Performance | Good | Optimized with fast paths |
+| Type Safety | Good | Enhanced with unified types |
 
-### Common Issues
+## 🚀 Migration Guide
 
-#### 1. Resolution Errors
-```
-AwilixResolutionError: Could not resolve 'serviceName'
-```
-**Solutions:**
-- Check if the service is registered
-- Verify the key name matches exactly
-- Ensure all dependencies are registered before the dependent service
-
-#### 2. Circular Dependencies
-```
-Error: Circular dependency detected
-```
-**Solutions:**
-- Use factory functions to break circular dependencies
-- Redesign service architecture to avoid circles
-- Use lazy initialization patterns
-
-#### 3. Constructor Argument Issues
-```
-TypeError: Cannot read properties of undefined
-```
-**Solutions:**
-- Verify `args` array matches constructor signature
-- Check if all required dependencies are registered
-- Use factory functions for complex constructor patterns
-
-### Debugging Tips
+### From Previous Versions
 
 ```typescript
-// Check registration status
-console.log('Registered keys:', container.getRegisteredKeys());
-console.log('Is logger registered?', container.isRegistered('logger'));
+// Before
+import { RegistrationConfig } from './tools/ioc';
+const config: RegistrationConfig = { ... };
+await container.resolveAsync('service');
 
-// Inspect container state
-console.log('Container registrations:', container.getContainer().registrations);
-
-// Use try-catch for resolution
-try {
-  const service = container.resolve('problematicService');
-} catch (error) {
-  console.error('Resolution failed:', error.message);
-  console.error('Available keys:', container.getRegisteredKeys());
-}
+// After
+import { ServiceConfig } from './tools/ioc';
+const config: ServiceConfig = { ... };
+await container.resolve('service');
 ```
 
-## ⚡ Performance Considerations
+## 🌟 Alternative: KsDp Library
 
-- **Lazy Loading**: Dependencies are only instantiated when first resolved
-- **Singleton Caching**: Singleton instances are cached for fast subsequent access
-- **Memory Optimization**: Transient objects are garbage collected when not in use
-- **Resolution Speed**: Direct key-based resolution is O(1) complexity
+If you're looking for a comprehensive design patterns library that includes IoC/DI as part of a larger ecosystem, consider **KsDp** - a complete Design Patterns Library that offers much more than just dependency injection.
 
-## 🔮 Future Enhancements
+### What is KsDp?
 
-- **Decorator Support**: TypeScript decorators for automatic registration
-- **Configuration Validation**: JSON schema validation for configurations
-- **Dependency Graphs**: Visual representation of dependency relationships
-- **Hot Reloading**: Dynamic reconfiguration without restart
-- **Plugin System**: Extensible architecture for custom resolvers
+**KsDp (Ksike Design Patterns)** is a comprehensive library containing reusable Object-Oriented Design and functional programming elements. It's an ambitious attempt to combine implementations of:
 
----
+- **GoF (Gang of Four)** patterns
+- **GRASP** patterns  
+- **IoC (Inversion of Control)**
+- **DI (Dependency Injection)**
+- **SOLID** principles
+- **DRY, KISS, SoC** and other fundamental principles
 
-## 📚 Additional Resources
+### KsDp vs This IoC Library
 
-- [Awilix Documentation](https://github.com/jeffijoe/awilix)
-- [Dependency Injection Patterns](https://martinfowler.com/articles/injection.html)
-- [TypeScript Best Practices](https://typescript-eslint.io/rules/)
+| Feature | This IoC Library | KsDp Library |
+|---------|------------------|--------------|
+| **Focus** | Specialized IoC/DI container | Complete design patterns ecosystem |
+| **Scope** | Dependency injection only | 20+ design patterns + principles |
+| **Size** | Lightweight, focused | Comprehensive, full-featured |
+| **Learning Curve** | Simple, easy to adopt | Requires broader design patterns knowledge |
+| **Use Case** | Pure IoC/DI needs | Full application architecture with multiple patterns |
 
----
+### Pattern Categories in KsDp
 
-**This enhanced IoC library provides a powerful, flexible, and maintainable dependency injection system that scales from simple applications to complex enterprise systems.** 
+#### **Integration Patterns:**
+- **IoC** - Inversion of Control
+- **DI** - Dependency Injection  
+- **LS** - Service Locator pattern
+- **Hook** - Event-driven programming
+
+#### **Creational Patterns:**
+- Abstract Factory, Builder, Factory Method, Prototype, Singleton
+
+#### **Structural Patterns:**
+- Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy
+
+#### **Behavioral Patterns:**
+- Chain of Responsibility, Command, Interpreter, Iterator, Mediator, Memento, Observer, State, Strategy, Template Method, Visitor
+
+### When to Choose KsDp
+
+Choose **KsDp** when you:
+
+- Need multiple design patterns in your application
+- Want a proven, comprehensive patterns library
+- Are building complex applications requiring various architectural patterns
+- Prefer an all-in-one solution from a mature ecosystem
+- Want to learn and implement industry-standard design patterns
+
+Choose **this IoC library** when you:
+
+- Only need dependency injection functionality
+- Want a lightweight, focused solution
+- Prefer modern TypeScript-first design
+- Need async-first resolution with auto-registration
+- Want detailed documentation and examples specific to IoC
+
+### Installation & Getting Started
+
+```bash
+# Install KsDp
+npm install ksdp
+
+# Basic usage example
+const { IoC } = require('ksdp');
+const container = new IoC();
+
+// KsDp also includes many other patterns
+const { Singleton, Observer, Factory } = require('ksdp');
+```
+
+### Learn More
+
+- **npm Package**: [`ksdp`](https://www.npmjs.com/package/ksdp)
+- **GitHub Repository**: [ameksike/ksdp](https://github.com/ameksike/ksdp)
+- **Ksike Ecosystem**: Complete microframework ecosystem including:
+  - **KsMf** - Microframework (WEB, REST API, CLI, Proxy)
+  - **KsDp** - Design Patterns Library (This one!)
+  - **KsCryp** - Cryptographic Library (RSA, JWT, x509, etc.)
+  - **KsHook** - Event Driven Library
+  - **KsEval** - Expression Evaluator Library
+  - **KsWC** - Web API deployment Library
+  - **KsTpl** - Template Engine
+
+### Final Recommendation
+
+Both libraries serve different purposes and can even be used together:
+
+- Use **this IoC library** for modern, TypeScript-first dependency injection with advanced features like auto-registration
+- Use **KsDp** when you need a comprehensive design patterns toolkit for complex application architecture
+
+The choice depends on your specific needs: focused IoC/DI functionality versus comprehensive design patterns implementation.
+
+## 🤝 Contributing
+
+This IoC library is part of a larger design patterns project. For contributions, please refer to the main project documentation.
+
+## 📄 License
+
+This project is licensed under the MIT License. 
