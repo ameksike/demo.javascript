@@ -1,5 +1,7 @@
-import { createContainer, asClass, asValue, asFunction, aliasTo, AwilixContainer } from 'awilix';
-import { ServiceConfig, IIoC, JsonRegistrationConfig, ClassConstructor, JsonValue } from './types';
+import { ServiceConfig, IIoC, ClassConstructor, JsonValue } from './types';
+import { createContainer, asClass, asValue, asFunction, aliasTo, Lifetime, AwilixContainer } from 'awilix';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Optimized IoC container wrapper over Awilix.
@@ -78,11 +80,73 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Registers dependencies from JSON configuration.
+   * Registers services from configuration objects.
+   * Only uses classRegistry conversion if there are string targets that need to be resolved.
+   * @param configs Array of ServiceConfig objects
+   * @param classRegistry Registry of class constructors (only used for string targets)
    */
-  async registerFromJson(configs: JsonRegistrationConfig[], classRegistry: Record<string, ClassConstructor>): Promise<void> {
+  async registerFromJson(configs: ServiceConfig[], classRegistry?: Record<string, ClassConstructor>): Promise<void> {
+    // Fast path: if no classRegistry or no string targets, register directly
+    if (!classRegistry || !this.hasStringTargets(configs)) {
+      await this.register(configs);
+      return;
+    }
+
+    // Slow path: convert string targets to actual classes
     const convertedConfigs = configs.map(config => this.convertJsonConfig(config, classRegistry));
     await this.register(convertedConfigs);
+  }
+
+  /**
+   * Checks if any config has string targets that need conversion
+   * @param configs Array of service configurations
+   * @returns true if any config has string targets
+   */
+  private hasStringTargets(configs: ServiceConfig[]): boolean {
+    return configs.some(config => {
+      if (typeof config.target === 'string') return true;
+      if (config.dependencies) {
+        const deps = Array.isArray(config.dependencies) ? config.dependencies : Object.values(config.dependencies);
+        return this.hasStringTargets(deps);
+      }
+      return false;
+    });
+  }
+
+  /**
+   * Converts a configuration with string targets to ServiceConfig with resolved class references.
+   * Only performs conversion when actually needed.
+   * @param config Configuration object
+   * @param classRegistry Registry of class constructors
+   * @returns ServiceConfig with resolved targets
+   */
+  private convertJsonConfig(config: ServiceConfig, classRegistry: Record<string, ClassConstructor>): ServiceConfig {
+    // Fast path: if no string target and no dependencies, return as-is
+    if (typeof config.target !== 'string' && !config.dependencies) {
+      return config;
+    }
+
+    const converted: ServiceConfig = { ...config };
+
+    // Convert string target to actual class/function if needed
+    if (typeof config.target === 'string' && classRegistry[config.target]) {
+      converted.target = classRegistry[config.target];
+    }
+
+    // Convert dependencies recursively - always convert to array format
+    if (config.dependencies) {
+      if (Array.isArray(config.dependencies)) {
+        converted.dependencies = config.dependencies.map(dep => this.convertJsonConfig(dep, classRegistry));
+      } else {
+        // Convert object format to array format
+        converted.dependencies = Object.entries(config.dependencies).map(([key, dep]) => ({
+          key,
+          ...this.convertJsonConfig(dep, classRegistry)
+        }));
+      }
+    }
+
+    return converted;
   }
 
   // === CORE REGISTRATION METHODS ===
@@ -169,8 +233,13 @@ export class IoC implements IIoC {
     // Cache configuration for reference resolution
     this.registeredConfigs.set(dependencyKey, config);
 
+    // Convert dependencies to array format if needed
+    const dependenciesArray = dependencies 
+      ? (Array.isArray(dependencies) ? dependencies : Object.entries(dependencies).map(([key, dep]) => ({ key, ...dep })))
+      : undefined;
+
     // Use strategy pattern for registration types
-    await this.executeRegistrationStrategy(dependencyKey, target, type, lifetime, path, args, dependencies, file);
+    await this.executeRegistrationStrategy(dependencyKey, target, type, lifetime, path, args, dependenciesArray, file);
   }
 
 
@@ -410,26 +479,6 @@ export class IoC implements IIoC {
   }
 
   // === JSON CONFIGURATION METHODS ===
-
-  /**
-   * Converts JSON configuration to regular service configuration.
-   */
-  private convertJsonConfig(config: JsonRegistrationConfig, classRegistry: Record<string, ClassConstructor>): ServiceConfig {
-    const convertedConfig: ServiceConfig = {
-      key: config.key,
-      type: config.type,
-      lifetime: config.lifetime,
-      path: config.path,
-      file: config.file,
-      args: config.args,
-      regex: config.regex,
-      target: config.target && config.type === 'class' && classRegistry[config.target] 
-        ? classRegistry[config.target] 
-        : config.target
-    };
-
-    return convertedConfig;
-  }
 
   /**
    * Stores auto-registration configurations for later dynamic loading.
@@ -684,50 +733,44 @@ export class IoC implements IIoC {
     }
   }
 
-  // === FILE I/O METHODS (Simplified) ===
+  // === FILE I/O METHODS ===
 
   /**
-   * Exports the current container configuration to JSON format.
-   * Note: This is a simplified export that creates basic class registrations.
-   * Complex configurations with dependencies may not be fully represented.
-   * 
-   * @returns Array of JSON registration configurations
-   * 
-   * @example
-   * ```typescript
-   * const jsonConfig = ioc.exportToJson();
-   * console.log('Container configuration:', jsonConfig);
-   * ```
+   * Exports the registered service configurations.
+   * Note: This only exports configurations that were explicitly registered,
+   * not services that were auto-registered during resolution.
+   * @returns Array of ServiceConfig objects
    */
-  exportToJson(): JsonRegistrationConfig[] {
-    return this.getRegisteredKeys().map(key => ({
-      key,
-      target: key,
-      type: 'class' as const
-    }));
+  exportToJson(): ServiceConfig[] {
+    const configs: ServiceConfig[] = [];
+    
+    // Export explicitly registered configurations
+    this.registeredConfigs.forEach((config, key) => {
+      configs.push({ ...config });
+    });
+
+    // Export auto-registration patterns
+    for (const pattern of this.autoRegistrationPatterns) {
+      configs.push({ ...pattern });
+    }
+
+    return configs;
   }
 
   /**
    * Loads dependency configuration from a JSON file.
-   * Requires a class registry to map string class names to actual constructors.
-   * 
    * @param configPath - Path to the JSON configuration file
-   * @param classRegistry - Map of class names to constructors
+   * @param classRegistry - Map of class names to constructors (optional)
    * @throws {Error} If file cannot be read or JSON is invalid
-   * 
-   * @example
-   * ```typescript
-   * const classRegistry = {
-   *   Logger: Logger,
-   *   UserService: UserService
-   * };
-   * await ioc.loadFromJsonFile('./config.json', classRegistry);
-   * ```
    */
-  async loadFromJsonFile(configPath: string, classRegistry: Record<string, ClassConstructor>): Promise<void> {
-    const fs = await import('fs');
-    const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    await this.registerFromJson(configData, classRegistry);
+  async loadFromJsonFile(configPath: string, classRegistry?: Record<string, ClassConstructor>): Promise<void> {
+    try {
+      const fileContent = fs.readFileSync(configPath, 'utf8');
+      const configData = JSON.parse(fileContent);
+      await this.registerFromJson(configData, classRegistry);
+    } catch (error) {
+      throw new Error(`Failed to load configuration from ${configPath}: ${error}`);
+    }
   }
 
   /**
@@ -747,4 +790,6 @@ export class IoC implements IIoC {
     const config = this.exportToJson();
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   }
+
+
 } 

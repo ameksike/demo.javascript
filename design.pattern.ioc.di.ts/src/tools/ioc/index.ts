@@ -1,12 +1,11 @@
-// Main IoC class
+// Export the main IoC class
 export { IoC } from './IoC';
 
-// Types and interfaces
+// Export types for external use
 export type { 
-  RegistrationConfig, 
-  IIoC, 
-  JsonRegistrationConfig, 
-  ClassConstructor, 
+  ServiceConfig,
+  IIoC,
+  ClassConstructor,
   JsonValue,
-  DependencyFunction 
+  DependencyFunction
 } from './types'; 

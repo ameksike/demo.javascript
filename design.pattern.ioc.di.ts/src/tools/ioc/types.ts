@@ -7,10 +7,11 @@ export type JsonValue = string | number | boolean | null | JsonValue[] | { [key:
 
 /**
  * Unified service configuration for dependency injection.
- * Used for both main service registration and nested dependency configuration.
- * 
- * This unified type simplifies the concept by eliminating redundancy between
- * DependencyConfig and RegistrationConfig, which had identical structures.
+ * This type serves all registration scenarios including:
+ * - Direct service registration
+ * - JSON-serializable configuration
+ * - Nested dependency configuration
+ * - Auto-registration patterns
  */
 export type ServiceConfig = {
   key?: string;                              // The key to register the dependency; if not provided, inferred from class name or string
@@ -21,35 +22,7 @@ export type ServiceConfig = {
   path?: string;                             // Path for dynamic imports if the target is a string
   file?: string;                             // Direct file path for module imports (takes precedence over path/target combination)
   args?: JsonValue[];                        // Arguments to pass to class constructor when type is 'class'
-  dependencies?: ServiceConfig[];            // Nested dependencies as array
-};
-
-/**
- * @deprecated Use ServiceConfig instead. This type is kept for backward compatibility.
- * Will be removed in a future version.
- */
-export type RegistrationConfig = ServiceConfig;
-
-/**
- * @deprecated Use ServiceConfig instead. This type is kept for backward compatibility.
- * Will be removed in a future version.
- */
-export type DependencyConfig = ServiceConfig;
-
-/**
- * Enhanced registration configuration for JSON serialization
- * This version uses string references for targets to make it JSON-serializable
- */
-export type JsonRegistrationConfig = {
-  key?: string;                              // The key to register the dependency
-  target?: string;                           // String reference to the class/function/value (optional for auto-registration)
-  regex?: string;                            // Regular expression pattern for auto-registration (used with type: 'auto')
-  type?: 'class' | 'value' | 'function' | 'alias' | 'auto'; // The type of dependency being registered
-  lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency
-  path?: string;                             // Path for dynamic imports
-  file?: string;                             // Direct file path for module imports (takes precedence over path/target combination)
-  args?: JsonValue[];                        // Arguments to pass to class constructor
-  dependencies?: { [key: string]: JsonRegistrationConfig }; // Nested dependencies
+  dependencies?: ServiceConfig[] | { [key: string]: ServiceConfig }; // Nested dependencies as array or object
 };
 
 /**
@@ -74,10 +47,10 @@ export interface IIoC {
 
   /**
    * Registers dependencies from JSON configuration
-   * @param configs - An array of JSON-serializable registration configurations
-   * @param classRegistry - Registry of class constructors for JSON config
+   * @param configs - An array of JSON-serializable service configurations
+   * @param classRegistry - Registry of class constructors for JSON config (optional)
    */
-  registerFromJson(configs: JsonRegistrationConfig[], classRegistry: { [key: string]: ClassConstructor }): Promise<void>;
+  registerFromJson(configs: ServiceConfig[], classRegistry?: { [key: string]: ClassConstructor }): Promise<void>;
 
   /**
    * Unregisters dependencies from the container based on their keys.
@@ -107,4 +80,10 @@ export interface IIoC {
    */
   resolveAsync<T>(key: string): Promise<T>;
   resolveAsync(key: string): Promise<any>;
+
+  /**
+   * Exports current container configuration to JSON format
+   * @returns Array of service configurations
+   */
+  exportToJson(): ServiceConfig[];
 } 
