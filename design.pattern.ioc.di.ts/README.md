@@ -340,10 +340,41 @@ Expected output includes:
 
 MIT License - see LICENSE file for details.
 
+## 🔗 Related Projects & Alternatives
+
+### KSDP - Comprehensive Design Patterns Library
+
+For developers seeking a more comprehensive design patterns ecosystem, consider [**KSDP (Ksike Design Patterns)**](https://www.npmjs.com/package/ksdp) - a TypeScript library that provides a complete suite of design patterns including:
+
+- **Integration Patterns**: IoC (Inversion of Control), DI (Dependency Injection), Service Locator, Event-driven Hooks
+- **Creational Patterns**: Abstract Factory, Builder, Factory Method, Prototype, Singleton
+- **Structural Patterns**: Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy
+- **Behavioral Patterns**: Chain of Responsibility, Command, Iterator, Mediator, Observer, Strategy, and more
+
+KSDP is part of the larger **Ksike ecosystem** that includes microframeworks, cryptographic libraries, and template engines, making it ideal for building enterprise-scale applications with robust architectural foundations.
+
+```bash
+npm install ksdp
+```
+
+**When to choose KSDP over this project:**
+- Need implementation of GoF, GRASP, and SOLID principles in one package
+- Building large-scale enterprise applications requiring multiple design patterns
+- Want a battle-tested library with established ecosystem support
+- Require additional patterns beyond IoC/DI (Observer, Strategy, Factory, etc.)
+
+**When to choose this IoC Container:**
+- Focus specifically on dependency injection and auto-registration
+- Want async-first resolution with modern TypeScript features
+- Need simplified configuration with intelligent defaults
+- Prefer lightweight, focused solutions over comprehensive frameworks
+
+Both approaches are valid - choose based on your project's complexity and architectural requirements.
+
 ## 🙏 Acknowledgments
 
 - Built on [Awilix](https://github.com/jeffijoe/awilix) - A powerful IoC container
-- Inspired by modern dependency injection patterns
+- Inspired by modern dependency injection patterns and [KSDP](https://www.npmjs.com/package/ksdp) design patterns library
 - Designed for TypeScript-first development
 
 ---
