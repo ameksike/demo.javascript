@@ -1,4 +1,4 @@
-import { IoC, RegistrationConfig } from './tools/ioc';
+import { IoC } from './tools/ioc';
 import { Logger, LogLevel } from './tools/log';
 
 /**

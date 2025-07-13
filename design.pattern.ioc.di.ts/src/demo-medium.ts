@@ -1,5 +1,5 @@
-import { IoC, RegistrationConfig } from './tools/ioc';
-import { Logger, LogLevel, LoggerConfig } from './tools/log';
+import { IoC } from './tools/ioc';
+import { Logger, LogLevel } from './tools/log';
 
 /**
  * Medium IoC Demo - Advanced Dependency Injection Patterns
