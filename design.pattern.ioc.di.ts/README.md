@@ -1,322 +1,351 @@
-# Inversion of Control (IoC) Demo with TypeScript
+# IoC Container with Auto-Registration - TypeScript Demo
 
-This project demonstrates an Inversion of Control (IoC) container implementation using TypeScript and Awilix, which allows dynamic loading of components and static classes.
+A comprehensive TypeScript implementation of an Inversion of Control (IoC) container with advanced auto-registration capabilities, built on top of [Awilix](https://github.com/jeffijoe/awilix).
 
-## 🚀 Features
+## 🚀 Key Features
 
-- **Dynamic Loading**: Imports and registers classes dynamically from files
-- **Dependency Injection**: Automatically resolves dependencies between classes
-- **Multiple Registration Types**: Supports classes, values, functions, and aliases
-- **Lifecycle Management**: Controls whether instances are singleton or transient
-- **Full TypeScript**: Strong typing and generics for enhanced safety
-- **Advanced IoC Patterns**: Zero explicit imports, deep transitive dependency injection
-- **Alias Support**: Flexible component resolution with context-specific aliases
-- **Performance Monitoring**: Built-in performance tracking and optimization
-- **Complex Business Workflows**: Comprehensive business logic orchestration
-- **✨ Direct File Imports**: New `file` property for direct module imports
-- **🎯 Enhanced Module Resolution**: Default export priority with intelligent fallbacks
-- **📦 Unified Configuration**: Simplified `ServiceConfig` type for all service definitions
+### ✨ **Async Resolution by Default**
+- **Primary resolve method is now async**: `await container.resolve<Service>('serviceName')`
+- **Synchronous fallback**: `container.resolveSync<Service>('serviceName')` for performance-critical scenarios
+- **Auto-registration support**: Automatically loads and registers services when requested
 
-## 📦 Project Structure
+### 🔄 **Smart Auto-Registration**
+- **Regex pattern matching**: Define patterns to auto-load services dynamically
+- **Default pattern**: Uses `.*` (matches everything) when no regex specified
+- **Path-based loading**: Automatically imports from specified directories
+- **Dependency injection**: Auto-registered services can have dependencies injected
 
-```
-kozen/
-├── src/
-│   ├── components/
-│   │   ├── Greeter.ts          # Class for dynamic loading
-│   │   ├── Calculator.ts       # Mathematical operations component
-│   │   └── BusinessService.ts  # Advanced IoC demonstration component
-│   ├── tools/
-│   │   ├── ioc/                # IoC container implementation
-│   │   └── log/                # Logging system implementation
-│   ├── index.ts                # Enhanced main application with BusinessService
-│   ├── advanced-demo.ts        # Advanced demo with more features
-│   └── business-service-demo.ts # Comprehensive BusinessService demo
-├── doc/
-│   ├── ioc.md                  # IoC container documentation
-│   └── advanced-ioc-patterns.md # Advanced IoC patterns documentation
-├── package.json
-├── tsconfig.json
-└── README.md
-```
+### ⚡ **Simplified Configuration**
+- **Sensible defaults**: Less boilerplate with intelligent defaults
+- **Lifecycle management**: Singleton, transient, and scoped lifetimes
+- **Type-safe**: Full TypeScript support with generic type resolution
 
-## 🛠️ Installation
+## 📦 Installation
 
-1. Install dependencies:
 ```bash
 npm install
-```
-
-2. Build the project:
-```bash
 npm run build
 ```
 
-3. Run the demo:
-```bash
-npm start
-```
+## 🎯 Quick Start
 
-Or run directly in development mode:
-```bash
-npm run dev
-```
-
-To run the advanced demo:
-```bash
-npm run advanced
-```
-
-To run the logging system demo:
-```bash
-npm run logger
-```
-
-To run the categories demo:
-```bash
-npm run categories
-```
-
-To run the log processors demo:
-```bash
-npm run processors
-```
-
-To run the enhanced BusinessService demo:
-```bash
-npm run business
-```
-
-To run the comprehensive advanced BusinessService demo:
-```bash
-npm run advanced-business
-```
-
-## 💡 How It Works
-
-### 1. Dependency Registration
-
-The IoC container allows registering different types of dependencies:
+### Basic Usage
 
 ```typescript
-const configs: RegistrationConfig[] = [
-  // Class with singleton lifecycle
-  { key: 'logger', target: Logger, lifetime: 'singleton' },
-  
-  // Dynamically loaded class with transient lifecycle
-  { target: 'Greeter', lifetime: 'transient', path: './components' },
-  
-  // Another dynamically loaded class with singleton lifecycle
-  { target: 'Calculator', lifetime: 'singleton', path: './components' },
-  
-  // Primitive value
-  { key: 'myVal', target: 125, type: 'value' },
-  
-  // Alias to another registration
-  { key: 'otherVal', target: 'myVal', type: 'alias' },
-  
-  // Function registered as value
-  { key: 'greetingFunction', target: function(name: string) { return `Hello, ${name}!`; }, type: 'value' },
-  
-  // Object with constants
-  { key: 'mathConstants', target: { PI: 3.14159, E: 2.71828 }, type: 'value' }
-];
-```
+import { IoC } from './src/tools/ioc';
+import { Logger, LogLevel } from './src/tools/log';
 
-### 2. Dependency Resolution
+const container = new IoC();
 
-Resolves dependencies with strong typing:
-
-```typescript
-// Resolution with generics
-const logger = manager.resolve<Logger>('logger');
-
-// Resolution without generics
-const greeter = manager.resolve('Greeter');
-```
-
-### 3. Automatic Injection
-
-Classes automatically receive their dependencies:
-
-```typescript
-export class Greeter {
-  private logger: Logger;
-  
-  constructor({ logger }: { logger: Logger }) {
-    this.logger = logger;
-  }
-  
-  greet(name: string): string {
-    this.logger.log(`Greeting: ${name}`);
-    return `Hello, ${name}!`;
-  }
-}
-```
-
-## ✨ New Features
-
-### Direct File Imports
-
-The new `file` property allows direct module imports, giving you more control over how modules are resolved:
-
-```typescript
-const configs: ServiceConfig[] = [
-  // Traditional path/target approach
-  { 
-    key: 'greeter1',
-    target: 'Greeter',
+// Register services
+await container.register([
+  {
+    key: 'logger',
+    target: Logger,
     type: 'class',
-    path: './components'
+    lifetime: 'singleton',
+    args: [{ level: LogLevel.INFO, category: 'APP' }]
+  },
+     {
+     // Auto-registration: no regex specified, defaults to .* (matches everything)
+     type: 'auto',
+     path: '../../services',
+     lifetime: 'singleton',
+     dependencies: [
+       { target: 'logger', type: 'ref', key: 'logger' }
+     ]
+   }
+]);
+
+// Resolve services (async by default)
+const logger = await container.resolve<Logger>('logger');
+const userService = await container.resolve<UserService>('UserService'); // Auto-registered!
+
+logger.info('Services resolved successfully');
+```
+
+### Auto-Registration Example
+
+```typescript
+// Services will be auto-registered when requested
+await container.register([
+  {
+    key: 'logger',
+    target: Logger,
+    type: 'class',
+    lifetime: 'singleton',
+    args: [{ level: LogLevel.DEBUG, category: 'SYSTEM' }]
+  },
+     {
+     regex: 'Data.*',           // Matches DataManager, DataService, etc.
+     type: 'auto',
+     path: '../../components',
+     lifetime: 'singleton',
+     dependencies: [
+       { target: 'logger', type: 'ref', key: 'logger' }
+     ]
+   },
+   {
+     regex: '.*Service',        // Matches UserService, OrderService, etc.
+     type: 'auto',
+     path: '../../services',
+     lifetime: 'transient'
+   }
+]);
+
+// These will be auto-registered on first resolve
+const dataManager = await container.resolve('DataManager');
+const userService = await container.resolve('UserService');
+const orderService = await container.resolve('OrderService');
+```
+
+## 🛠️ Advanced Configuration
+
+### Multiple Auto-Registration Patterns
+
+```typescript
+await container.register([
+  // Core services
+  {
+    key: 'logger',
+    target: Logger,
+    type: 'class',
+    lifetime: 'singleton',
+    args: [{ level: LogLevel.INFO, category: 'APP' }]
   },
   
-  // ✨ NEW: Direct file import (takes precedence over path/target)
-  { 
-    key: 'greeter2',
-    target: 'Greeter',
-    type: 'class',
-    file: './components/Greeter' // Direct file path
-  }
-];
+     // Data layer - singletons with logger dependency
+   {
+     regex: 'Data.*',
+     type: 'auto',
+     path: '../../data',
+     lifetime: 'singleton',
+     dependencies: [
+       { target: 'logger', type: 'ref', key: 'logger' }
+     ]
+   },
+   
+   // Business services - transient instances
+   {
+     regex: '.*Service',
+     type: 'auto',
+     path: '../../services',
+     lifetime: 'transient',
+     dependencies: [
+       { target: 'logger', type: 'ref', key: 'logger' }
+     ]
+   },
+   
+   // Controllers - scoped instances
+   {
+     regex: '.*Controller',
+     type: 'auto',
+     path: '../../controllers',
+     lifetime: 'scoped'
+   }
+]);
 ```
 
-### Enhanced Module Resolution
+### Direct File Path Registration
 
-The module resolution now follows a priority system:
+```typescript
+await container.register([
+     {
+     regex: 'Config.*',
+     type: 'auto',
+     file: '../../config/ConfigManager',  // Direct file path
+     lifetime: 'singleton'
+   }
+]);
+```
 
-1. **Default Export** (highest priority)
-2. **Named Export** matching target name
-3. **First Available Export** (fallback)
+## 📚 Configuration Options
 
-This ensures more reliable module imports and better compatibility with different export patterns.
-
-### Unified ServiceConfig Type
-
-The `ServiceConfig` type now unifies what were previously separate `RegistrationConfig` and `DependencyConfig` types:
+### ServiceConfig Interface
 
 ```typescript
 type ServiceConfig = {
-  key?: string;                    // Registration key (optional)
-  target: any;                     // Target to register
-  type?: 'class' | 'value' | 'function' | 'alias' | 'ref';  // Registration type
-  lifetime?: 'singleton' | 'transient' | 'scoped';  // Lifecycle
-  path?: string;                   // Path for dynamic imports
-  file?: string;                   // ✨ NEW: Direct file path (takes precedence)
-  args?: JsonValue[];              // Arguments for class constructors
-  dependencies?: ServiceConfig[];  // Nested dependencies
+  key?: string;                    // Service key (optional, inferred from class name)
+  target?: any;                    // Class constructor, value, or function
+  regex?: string;                  // Regex pattern for auto-registration (defaults to .*)
+  type?: 'class' | 'value' | 'function' | 'alias' | 'ref' | 'auto';
+  lifetime?: 'singleton' | 'transient' | 'scoped';
+  path?: string;                   // Directory path for auto-registration
+  file?: string;                   // Direct file path (takes precedence over path)
+  args?: JsonValue[];              // Constructor arguments
+  dependencies?: ServiceConfig[];   // Dependency injection configuration
 };
 ```
-
-## 🔧 Configuration
-
-### ServiceConfig (Unified Type)
-
-```typescript
-type ServiceConfig = {
-  key?: string;                    // Registration key (optional)
-  target: any;                     // Target to register
-  type?: 'class' | 'value' | 'function' | 'alias' | 'ref';  // Registration type
-  lifetime?: 'singleton' | 'transient' | 'scoped';  // Lifecycle
-  path?: string;                   // Path for dynamic imports
-  file?: string;                   // ✨ Direct file path (takes precedence over path/target)
-  args?: JsonValue[];              // Arguments for class constructors
-  dependencies?: ServiceConfig[];  // Nested dependencies
-};
-```
-
-**Note**: `RegistrationConfig` and `DependencyConfig` are still available for backward compatibility but are deprecated. Use `ServiceConfig` for new code.
 
 ### Registration Types
 
-- **class**: Register a class (direct or by dynamic import)
-- **value**: Register a primitive value or object
-- **function**: Register a function
-- **alias**: Create an alias to another existing registration
+| Type | Description | Example |
+|------|-------------|---------|
+| `class` | Register a class constructor | `{ target: UserService, type: 'class' }` |
+| `value` | Register a static value | `{ target: 'production', type: 'value' }` |
+| `function` | Register a function | `{ target: () => new Date(), type: 'function' }` |
+| `alias` | Create an alias to existing service | `{ target: 'logger', type: 'alias' }` |
+| `ref` | Reference to another service | `{ target: 'logger', type: 'ref' }` |
+| `auto` | Auto-registration pattern | `{ regex: 'Data.*', type: 'auto', path: './data' }` |
 
-### Lifecycles
+### Lifetime Management
 
-- **singleton**: Single instance throughout application lifetime
-- **transient**: New instance each time it's resolved
-- **scoped**: One instance per scope/context (useful for web requests)
+| Lifetime | Description | Behavior |
+|----------|-------------|----------|
+| `singleton` | Single instance | Same instance returned on every resolve |
+| `transient` | New instance each time | New instance created on every resolve |
+| `scoped` | Instance per scope | Same instance within a scope |
 
-## 🎯 Usage Example
+## 🔄 Auto-Registration Deep Dive
 
-The `src/index.ts` file contains a complete demo that shows:
+### How Auto-Registration Works
 
-1. Registration of multiple dependency types (classes, values, functions, aliases)
-2. Resolution with and without generics
-3. Demonstration of singleton vs transient lifecycles
-4. Usage of dynamically loaded classes (Greeter, Calculator)
-5. Registration of functions and objects as values
-6. Demonstration of aliases between registrations
-7. Error handling and validations
+1. **Pattern Matching**: When `resolve()` is called, the container checks if the requested key matches any auto-registration patterns
+2. **Dynamic Import**: If a match is found, the service is dynamically imported from the specified path
+3. **Dependency Injection**: Dependencies are resolved and injected automatically  
+4. **Caching**: Successfully auto-registered services are cached for performance
+5. **Fallback**: If auto-registration fails, the original error is thrown
 
-## 🏢 Advanced BusinessService Component
+### Auto-Registration Flow
 
-The `BusinessService` component demonstrates advanced IoC patterns with:
-
-### Key Features
-- **Zero Explicit Imports**: No need for manual imports, IoC manages all dependencies
-- **Deep Transitive Dependency Injection**: Automatic resolution of complex dependency trees
-- **Transient Instance Management**: New instances for optimal performance and isolation
-- **Alias Support**: Multiple aliases for different business contexts
-- **Performance Monitoring**: Built-in performance tracking and optimization
-- **Complex Business Logic**: Comprehensive workflows combining multiple services
-
-### Example Usage
-
-```typescript
-// Configuration with zero imports needed in BusinessService
-const configs: RegistrationConfig[] = [
-  // Multiple logger configurations
-  { key: 'businessLogger', target: Logger, type: 'class', lifetime: 'singleton',
-    args: [{ level: LogLevel.DEBUG, category: 'BUSINESS' }] },
-  
-  // Core components
-  { target: 'Calculator', lifetime: 'singleton', path: '../../components' },
-  { target: 'Greeter', lifetime: 'transient', path: '../../components' },
-  { target: 'BusinessService', lifetime: 'transient', path: '../../components' },
-  
-  // Advanced factory function for dependency injection
-  { 
-    key: 'orderProcessor', 
-    target: (cradle: any) => new (cradle.BusinessService)({
-      calculator: cradle.Calculator,
-      greeter: cradle.Greeter,
-      logger: cradle.businessLogger
-    }),
-    type: 'function',
-    lifetime: 'transient'
-  },
-  
-  // Aliases for different business contexts
-  { key: 'customerService', target: 'orderProcessor', type: 'alias' }
-];
-
-// Usage - completely decoupled from implementation
-const businessService = container.resolve('orderProcessor');
-const result = businessService.processCustomerOrder('John Doe', orderItems);
+```mermaid
+graph TD
+    A[resolve('ServiceName')] --> B{Service registered?}
+    B -->|Yes| C[Return cached instance]
+    B -->|No| D{Auto-registration pattern matches?}
+    D -->|Yes| E[Dynamic import from path]
+    E --> F[Resolve dependencies]
+    F --> G[Register service]
+    G --> H[Return new instance]
+    D -->|No| I[Throw resolution error]
 ```
 
-### Business Logic Examples
+### Default Behavior
 
-- **Order Processing**: Complex multi-step order workflows with calculations and logging
-- **Customer Feedback**: Sentiment analysis with priority scoring
-- **Performance Analytics**: Real-time performance monitoring and optimization recommendations
-- **Complete Workflows**: End-to-end business processes combining multiple services
+- **Default regex**: `.*` (matches everything) when no regex specified
+- **Path resolution**: Relative to the IoC container file location
+- **Dependency injection**: Supports nested dependency resolution
+- **Error handling**: Graceful fallback with detailed error messages
 
-See `doc/advanced-ioc-patterns.md` for detailed documentation and examples.
+## 🎮 Demo Scripts
 
-## 📚 Dependencies
+Run the included demos to see all features in action:
 
-- **awilix**: Dependency injection container
-- **typescript**: TypeScript compiler
-- **ts-node**: TypeScript executor for development
+```bash
+# Basic concepts and auto-registration
+npm run simple
 
-## 🤝 Contribution
+# Advanced patterns and lifecycle management  
+npm run medium
 
-This is a demonstration project. Improvements and suggestions are welcome.
+# Expert-level auto-registration and performance
+npm run advanced
+
+# Comprehensive showcase of all features
+npm run dev
+
+# Logger-specific demonstrations
+npm run logger
+```
+
+## 📝 Demo Overview
+
+### Simple Demo (`npm run simple`)
+- **Level**: ⭐ Beginner
+- **Features**: Basic registration, auto-registration, values, functions, aliases
+- **Focus**: Core concepts and simplified configuration
+
+### Medium Demo (`npm run medium`)  
+- **Level**: ⭐⭐⭐ Intermediate
+- **Features**: Multiple lifecycles, factory functions, service maps, JSON export/import
+- **Focus**: Advanced patterns and container management
+
+### Advanced Demo (`npm run advanced`)
+- **Level**: ⭐⭐⭐⭐ Expert
+- **Features**: Regex patterns, auto-registration, performance optimization, caching
+- **Focus**: Auto-registration patterns and enterprise features
+
+### Comprehensive Demo (`npm run dev`)
+- **Level**: ⭐⭐⭐⭐⭐ Production Ready
+- **Features**: All features combined in a real-world scenario
+- **Focus**: Complete system integration and best practices
+
+## 🏗️ Architecture
+
+### Core Components
+
+```
+src/
+├── tools/ioc/
+│   ├── IoC.ts              # Main container implementation
+│   ├── types.ts            # Type definitions
+│   └── index.ts            # Public API
+├── tools/log/
+│   ├── Logger.ts           # Logging implementation
+│   ├── processors/         # Log processors
+│   └── types.ts            # Log types
+├── components/
+│   ├── App.ts              # Sample application
+│   ├── BusinessService.ts  # Complex business logic
+│   ├── Calculator.ts       # Simple service
+│   ├── DataManager.ts      # Data management
+│   └── Greeter.ts          # Basic service
+└── demo-*.ts               # Demo scripts
+```
+
+### Key Classes
+
+- **IoC**: Main container class with auto-registration
+- **Logger**: Configurable logging system
+- **BusinessService**: Complex service demonstrating deep injection
+- **Auto-registered services**: DataManager, Calculator, Greeter, App
+
+## 🔧 Performance Optimizations
+
+### Caching Strategy
+- **Auto-registration cache**: Prevents re-processing of failed resolutions
+- **Singleton management**: Efficient instance reuse
+- **Lazy loading**: Services loaded only when needed
+
+### Best Practices
+- **Async by default**: Better performance with async resolution
+- **Pattern-based loading**: Efficient service discovery
+- **Minimal configuration**: Sensible defaults reduce boilerplate
+
+## 🧪 Testing
+
+The demos serve as comprehensive tests:
+
+```bash
+# Run all demos
+npm run simple && npm run medium && npm run advanced && npm run dev
+```
+
+Expected output includes:
+- ✅ Service registration and resolution
+- ✅ Auto-registration with pattern matching
+- ✅ Dependency injection verification
+- ✅ Lifecycle management confirmation
+- ✅ Performance metrics
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add/update demos to showcase new features
+4. Update documentation
+5. Submit a pull request
 
 ## 📄 License
 
-MIT License 
+MIT License - see LICENSE file for details.
+
+## 🙏 Acknowledgments
+
+- Built on [Awilix](https://github.com/jeffijoe/awilix) - A powerful IoC container
+- Inspired by modern dependency injection patterns
+- Designed for TypeScript-first development
+
+---
+
+**Ready to revolutionize your dependency injection? Start with `npm run simple` and explore the power of auto-registration! 🚀** 

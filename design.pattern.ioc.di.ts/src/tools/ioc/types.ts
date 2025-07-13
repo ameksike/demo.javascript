@@ -14,8 +14,9 @@ export type JsonValue = string | number | boolean | null | JsonValue[] | { [key:
  */
 export type ServiceConfig = {
   key?: string;                              // The key to register the dependency; if not provided, inferred from class name or string
-  target: any;                               // The target: Class, function, value, alias, string, or reference key
-  type?: 'class' | 'value' | 'function' | 'alias' | 'ref'; // The type of dependency being registered; defaults to 'class'
+  target?: any;                              // The target: Class, function, value, alias, string, or reference key (optional for auto-registration)
+  regex?: string;                            // Regular expression pattern for auto-registration (used with type: 'auto')
+  type?: 'class' | 'value' | 'function' | 'alias' | 'ref' | 'auto'; // The type of dependency being registered; defaults to 'class'
   lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency; defaults to 'transient'
   path?: string;                             // Path for dynamic imports if the target is a string
   file?: string;                             // Direct file path for module imports (takes precedence over path/target combination)
@@ -41,8 +42,9 @@ export type DependencyConfig = ServiceConfig;
  */
 export type JsonRegistrationConfig = {
   key?: string;                              // The key to register the dependency
-  target: string;                            // String reference to the class/function/value
-  type?: 'class' | 'value' | 'function' | 'alias'; // The type of dependency being registered
+  target?: string;                           // String reference to the class/function/value (optional for auto-registration)
+  regex?: string;                            // Regular expression pattern for auto-registration (used with type: 'auto')
+  type?: 'class' | 'value' | 'function' | 'alias' | 'auto'; // The type of dependency being registered
   lifetime?: 'singleton' | 'transient' | 'scoped';  // The lifecycle of the dependency
   path?: string;                             // Path for dynamic imports
   file?: string;                             // Direct file path for module imports (takes precedence over path/target combination)
@@ -84,10 +86,25 @@ export interface IIoC {
   unregister(keys: string[]): void;
 
   /**
-   * Resolves a dependency from the container.
+   * Resolves a dependency from the container with auto-registration support.
+   * If the dependency is not found, attempts to auto-register it using regex patterns.
    * @param key - The key of the dependency to resolve.
    * @returns The resolved dependency.
    */
-  resolve<T>(key: string): T;
-  resolve(key: string): any;
+  resolve<T>(key: string): Promise<T>;
+  resolve(key: string): Promise<any>;
+
+  /**
+   * Resolves a dependency from the container synchronously without auto-registration.
+   * @param key - The key of the dependency to resolve.
+   * @returns The resolved dependency.
+   */
+  resolveSync<T>(key: string): T;
+  resolveSync(key: string): any;
+
+  /**
+   * @deprecated Use resolve() instead. This method is kept for backward compatibility.
+   */
+  resolveAsync<T>(key: string): Promise<T>;
+  resolveAsync(key: string): Promise<any>;
 } 
