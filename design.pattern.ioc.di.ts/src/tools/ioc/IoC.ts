@@ -14,9 +14,12 @@ import { ServiceConfig, IIoC, JsonRegistrationConfig, ClassConstructor, JsonValu
 export class IoC implements IIoC {
   private readonly container: AwilixContainer;
   private readonly registeredConfigs = new Map<string, ServiceConfig>();
-
-  // Performance optimization: Cache commonly used patterns
-  private readonly propertyNameCache = new Map<string, string>();
+  
+  // Auto-registration configurations (regex patterns)
+  private readonly autoRegistrationPatterns: ServiceConfig[] = [];
+  
+  // Cache for resolved auto-registrations to avoid re-processing
+  private readonly autoRegistrationCache = new Map<string, boolean>();
   
   // Error messages for consistency
   private static readonly ERRORS = {
@@ -38,18 +41,40 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Registers dependencies from configurations using optimized two-pass approach.
-   * First pass: dependencies without references
-   * Second pass: dependencies with references (to ensure proper resolution order)
+   * Registers dependencies based on the provided configuration objects.
+   * 
+   * This method processes a batch of service configurations and registers them
+   * with the IoC container. It supports various dependency types including classes,
+   * functions, values, aliases, references, and auto-registration configurations.
+   * 
+   * @param configs - Array of service configurations to register
+   * @returns Promise that resolves when all dependencies are registered
+   * 
+   * @example
+   * ```typescript
+   * await ioc.register([
+   *   { key: 'logger', target: Logger, type: 'class', lifetime: 'singleton' },
+   *   { key: 'autoService', target: 'DataManager', type: 'auto', path: '../../components' }
+   * ]);
+   * ```
    */
   async register(configs: ServiceConfig[]): Promise<void> {
-    const [withoutDeps, withDeps] = this.partitionConfigs(configs);
+    // Store configurations in registeredConfigs for tracking
+    for (const config of configs) {
+      const key = config.key ?? this.determineKey(config.target);
+      if (key) this.registeredConfigs.set(key, config);
+    }
+
+    // Partition configurations: regular vs auto-registration
+    const [regularConfigs, autoConfigs] = this.partitionConfigs(configs);
     
-    // Register dependencies without references first
-    await this.registerBatch(withoutDeps);
+    // Store auto-registration configurations for later dynamic loading
+    this.storeAutoRegistrationConfigs(autoConfigs);
     
-    // Register dependencies with references second
-    await this.registerBatch(withDeps);
+    // Register regular configurations immediately
+    if (regularConfigs.length > 0) {
+      await this.registerBatch(regularConfigs);
+    }
   }
 
   /**
@@ -63,12 +88,56 @@ export class IoC implements IIoC {
   // === CORE REGISTRATION METHODS ===
 
   /**
-   * Partitions configurations into those with and without dependencies for optimal registration order.
+   * Partitions configurations into regular and auto-registration groups.
+   * 
+   * @param configs - Array of service configurations to partition
+   * @returns Tuple containing [regularConfigs, autoConfigs]
    */
   private partitionConfigs(configs: ServiceConfig[]): [ServiceConfig[], ServiceConfig[]] {
+    const regularConfigs: ServiceConfig[] = [];
+    const autoConfigs: ServiceConfig[] = [];
+
+    for (const config of configs) {
+      if (config.type === 'auto') {
+        autoConfigs.push(config);
+      } else {
+        regularConfigs.push(config);
+      }
+    }
+
+    return [regularConfigs, autoConfigs];
+  }
+
+  /**
+   * Registers a batch of configurations with optimized dependency resolution.
+   * 
+   * @param configs - Array of service configurations to register
+   */
+  private async registerBatch(configs: ServiceConfig[]): Promise<void> {
+    // Partition by dependency complexity for optimal registration order
+    const [withoutDeps, withDeps] = this.partitionByDependencies(configs);
+    
+    // Register dependencies without references first
+    for (const config of withoutDeps) {
+      await this.registerSingle(config);
+    }
+    
+    // Register dependencies with references second
+    for (const config of withDeps) {
+      await this.registerSingle(config);
+    }
+  }
+
+  /**
+   * Partitions configurations by dependency complexity for optimal registration order.
+   * 
+   * @param configs - Array of service configurations to partition
+   * @returns Tuple containing [withoutDeps, withDeps]
+   */
+  private partitionByDependencies(configs: ServiceConfig[]): [ServiceConfig[], ServiceConfig[]] {
     const withoutDeps: ServiceConfig[] = [];
     const withDeps: ServiceConfig[] = [];
-    
+
     for (const config of configs) {
       if (!config.dependencies?.length) {
         withoutDeps.push(config);
@@ -76,17 +145,8 @@ export class IoC implements IIoC {
         withDeps.push(config);
       }
     }
-    
-    return [withoutDeps, withDeps];
-  }
 
-  /**
-   * Registers a batch of configurations.
-   */
-  private async registerBatch(configs: ServiceConfig[]): Promise<void> {
-    for (const config of configs) {
-      await this.registerSingle(config);
-    }
+    return [withoutDeps, withDeps];
   }
 
   /**
@@ -112,6 +172,8 @@ export class IoC implements IIoC {
     // Use strategy pattern for registration types
     await this.executeRegistrationStrategy(dependencyKey, target, type, lifetime, path, args, dependencies, file);
   }
+
+
 
   /**
    * Handles reference type registrations.
@@ -149,23 +211,25 @@ export class IoC implements IIoC {
       case 'value':
         this.container.register(key, asValue(target));
         break;
-        
+
       case 'function':
         this.registerFunction(key, target, lifetime);
         break;
-        
+
       case 'alias':
         this.container.register(key, aliasTo(target));
         break;
-        
+
       case 'class':
         await this.registerClass(key, target, lifetime, path, args, dependencies, file);
         break;
-        
+
       default:
         throw new Error(IoC.ERRORS.UNSUPPORTED_TYPE(type));
     }
   }
+
+
 
   /**
    * Registers a function with validation.
@@ -202,6 +266,8 @@ export class IoC implements IIoC {
     this.container.register(key, asFunction(factoryFunction)[lifetime]());
   }
 
+
+
   /**
    * Resolves class constructor from target (string or function) with enhanced module resolution.
    * 
@@ -233,7 +299,7 @@ export class IoC implements IIoC {
       
       try {
         // Import module with optimized resolution
-        const importedModule = await import(modulePath);
+      const importedModule = await import(modulePath);
         
         // Performance optimization: Use fastest resolution strategy
         return this.resolveConstructorFromModule(importedModule, target, key);
@@ -334,44 +400,13 @@ export class IoC implements IIoC {
   private resolveDependencyNames(dep: ServiceConfig): { propertyName: string; targetKey: string } {
     if (dep.type === 'ref') {
       const targetKey = dep.target as string;
-      const propertyName = dep.key ?? this.getCachedPropertyName(targetKey);
+      const propertyName = dep.key ?? targetKey;
       return { propertyName, targetKey };
     }
     
-    // Inline case
+    // Use awilix's built-in camelCase conversion
     const propertyName = dep.key ?? this.determineKey(dep.target) ?? 'unknown';
     return { propertyName, targetKey: propertyName };
-  }
-
-  /**
-   * Gets cached property name or generates and caches it.
-   */
-  private getCachedPropertyName(targetKey: string): string {
-    let propertyName = this.propertyNameCache.get(targetKey);
-    if (!propertyName) {
-      propertyName = this.inferPropertyName(targetKey);
-      this.propertyNameCache.set(targetKey, propertyName);
-    }
-    return propertyName;
-  }
-
-  /**
-   * Optimized property name inference with better pattern matching.
-   */
-  private inferPropertyName(targetKey: string): string {
-    const lowerKey = targetKey.toLowerCase();
-    
-    // Quick checks for common patterns
-    if (lowerKey.includes('logger')) return 'logger';
-    if (lowerKey.includes('service')) return lowerKey.replace(/service$/i, '');
-    if (lowerKey.includes('repository')) return lowerKey.replace(/repository$/i, '');
-    
-    // Remove common suffixes and convert to camelCase
-    const cleaned = targetKey
-      .replace(/(?:Service|Component|Manager|Repository|Handler)$/i, '')
-      .replace(/^[A-Z]/, char => char.toLowerCase());
-    
-    return cleaned || targetKey.toLowerCase();
   }
 
   // === JSON CONFIGURATION METHODS ===
@@ -387,12 +422,28 @@ export class IoC implements IIoC {
       path: config.path,
       file: config.file,
       args: config.args,
-      target: config.type === 'class' && classRegistry[config.target] 
+      regex: config.regex,
+      target: config.target && config.type === 'class' && classRegistry[config.target] 
         ? classRegistry[config.target] 
         : config.target
     };
 
     return convertedConfig;
+  }
+
+  /**
+   * Stores auto-registration configurations for later dynamic loading.
+   * 
+   * @param autoConfigs - Array of auto-registration configurations
+   */
+  private storeAutoRegistrationConfigs(autoConfigs: ServiceConfig[]): void {
+    for (const config of autoConfigs) {
+      // Set default regex if not provided
+      if (!config.regex) {
+        config.regex = '.*';
+      }
+      this.autoRegistrationPatterns.push(config);
+    }
   }
 
   // === UTILITY METHODS ===
@@ -431,21 +482,65 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Resolves a dependency from the container by key.
+   * Resolves a dependency from the container with auto-registration support.
+   * 
+   * If the dependency is not found in the container, it attempts to auto-register
+   * it using stored regex patterns before resolving. This is the primary resolution method.
    * 
    * @template T - The expected type of the resolved dependency
    * @param key - The key of the dependency to resolve
    * @returns The resolved dependency instance
-   * @throws {Error} If the key is not registered in the container
    * 
    * @example
    * ```typescript
-   * const logger = ioc.resolve<Logger>('logger');
-   * const userService = ioc.resolve<UserService>('userService');
+   * const logger = await ioc.resolve<Logger>('logger');
+   * const dataManager = await ioc.resolve<DataManager>('DataManager');
    * ```
+   * 
+   * @throws Error if dependency cannot be resolved or auto-registered
    */
-  resolve<T>(key: string): T {
+  async resolve<T>(key: string): Promise<T> {
+    try {
+      // Try to resolve from container first (fast path)
+      return this.container.resolve<T>(key);
+    } catch (error) {
+      // If not found, try auto-registration (asynchronous)
+      const autoRegistered = await this.tryAutoRegistration(key);
+      if (autoRegistered) {
+        return this.container.resolve<T>(key);
+      }
+      
+      // If no auto-registration pattern matches, throw original error
+      throw error;
+    }
+  }
+
+  /**
+   * Resolves a dependency from the container synchronously without auto-registration.
+   * 
+   * This method provides fast synchronous resolution for performance-critical scenarios
+   * where auto-registration is not needed.
+   * 
+   * @template T - The expected type of the resolved dependency
+   * @param key - The key of the dependency to resolve
+   * @returns The resolved dependency instance
+   * 
+   * @example
+   * ```typescript
+   * const logger = ioc.resolveSync<Logger>('logger');
+   * ```
+   * 
+   * @throws Error if dependency cannot be resolved
+   */
+  resolveSync<T>(key: string): T {
     return this.container.resolve<T>(key);
+  }
+
+  /**
+   * @deprecated Use resolve() instead. This method is kept for backward compatibility.
+   */
+  async resolveAsync<T>(key: string): Promise<T> {
+    return this.resolve<T>(key);
   }
 
   /**
@@ -510,6 +605,83 @@ export class IoC implements IIoC {
    */
   createScope(): AwilixContainer {
     return this.container.createScope();
+  }
+
+  /**
+   * Attempts to auto-register a dependency using regex patterns.
+   * 
+   * @param key - The key to auto-register
+   * @returns True if auto-registration was successful, false otherwise
+   */
+  private async tryAutoRegistration(key: string): Promise<boolean> {
+    // Check cache first to avoid re-processing
+    if (this.autoRegistrationCache.has(key)) {
+      return this.autoRegistrationCache.get(key)!;
+    }
+
+    // Find matching regex pattern
+    const matchingPattern = this.autoRegistrationPatterns.find(pattern => {
+      const regexPattern = pattern.regex || '.*'; // Default to match everything
+      const regex = new RegExp(regexPattern);
+      return regex.test(key);
+    });
+
+    if (!matchingPattern) {
+      this.autoRegistrationCache.set(key, false);
+      return false;
+    }
+
+    try {
+      // Perform asynchronous auto-registration
+      await this.performAutoRegistration(key, matchingPattern);
+      this.autoRegistrationCache.set(key, true);
+      console.log(`✅ Auto-registered dependency: ${key}`);
+      return true;
+    } catch (error) {
+      this.autoRegistrationCache.set(key, false);
+      console.warn(`⚠️ Failed to auto-register dependency '${key}': ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
+  }
+
+  /**
+   * Performs auto-registration for a specific key using a matching pattern.
+   * 
+   * @param key - The key to auto-register
+   * @param pattern - The matching auto-registration pattern
+   * @throws Error if auto-registration fails
+   */
+  private async performAutoRegistration(key: string, pattern: ServiceConfig): Promise<void> {
+    // Determine the module path
+    const modulePath = pattern.file ?? (pattern.path ? `${pattern.path}/${key}` : null);
+    
+    if (!modulePath) {
+      throw new Error(`No path specified for auto-registration of '${key}'`);
+    }
+
+    try {
+      // Asynchronous module loading using dynamic import
+      const importedModule = await import(modulePath);
+      
+      // Get the constructor from the module
+      const constructor = this.resolveConstructorFromModule(importedModule, key, key);
+      
+      // Create the service configuration
+      const serviceConfig: ServiceConfig = {
+        key,
+        target: constructor,
+        type: 'class',
+        lifetime: pattern.lifetime ?? 'transient',
+        dependencies: pattern.dependencies,
+        args: pattern.args
+      };
+
+      // Register the dependency asynchronously
+      await this.registerSingle(serviceConfig);
+      
+    } catch (error) {
+      throw new Error(`Failed to load module '${modulePath}' for auto-registration of '${key}': ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   // === FILE I/O METHODS (Simplified) ===
