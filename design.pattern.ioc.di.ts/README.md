@@ -13,6 +13,9 @@ This project demonstrates an Inversion of Control (IoC) container implementation
 - **Alias Support**: Flexible component resolution with context-specific aliases
 - **Performance Monitoring**: Built-in performance tracking and optimization
 - **Complex Business Workflows**: Comprehensive business logic orchestration
+- **✨ Direct File Imports**: New `file` property for direct module imports
+- **🎯 Enhanced Module Resolution**: Default export priority with intelligent fallbacks
+- **📦 Unified Configuration**: Simplified `ServiceConfig` type for all service definitions
 
 ## 📦 Project Structure
 
@@ -151,19 +154,77 @@ export class Greeter {
 }
 ```
 
-## 🔧 Configuration
+## ✨ New Features
 
-### RegistrationConfig
+### Direct File Imports
+
+The new `file` property allows direct module imports, giving you more control over how modules are resolved:
 
 ```typescript
-type RegistrationConfig = {
+const configs: ServiceConfig[] = [
+  // Traditional path/target approach
+  { 
+    key: 'greeter1',
+    target: 'Greeter',
+    type: 'class',
+    path: './components'
+  },
+  
+  // ✨ NEW: Direct file import (takes precedence over path/target)
+  { 
+    key: 'greeter2',
+    target: 'Greeter',
+    type: 'class',
+    file: './components/Greeter' // Direct file path
+  }
+];
+```
+
+### Enhanced Module Resolution
+
+The module resolution now follows a priority system:
+
+1. **Default Export** (highest priority)
+2. **Named Export** matching target name
+3. **First Available Export** (fallback)
+
+This ensures more reliable module imports and better compatibility with different export patterns.
+
+### Unified ServiceConfig Type
+
+The `ServiceConfig` type now unifies what were previously separate `RegistrationConfig` and `DependencyConfig` types:
+
+```typescript
+type ServiceConfig = {
   key?: string;                    // Registration key (optional)
   target: any;                     // Target to register
-  type?: 'class' | 'value' | 'function' | 'alias';  // Registration type
+  type?: 'class' | 'value' | 'function' | 'alias' | 'ref';  // Registration type
   lifetime?: 'singleton' | 'transient' | 'scoped';  // Lifecycle
   path?: string;                   // Path for dynamic imports
+  file?: string;                   // ✨ NEW: Direct file path (takes precedence)
+  args?: JsonValue[];              // Arguments for class constructors
+  dependencies?: ServiceConfig[];  // Nested dependencies
 };
 ```
+
+## 🔧 Configuration
+
+### ServiceConfig (Unified Type)
+
+```typescript
+type ServiceConfig = {
+  key?: string;                    // Registration key (optional)
+  target: any;                     // Target to register
+  type?: 'class' | 'value' | 'function' | 'alias' | 'ref';  // Registration type
+  lifetime?: 'singleton' | 'transient' | 'scoped';  // Lifecycle
+  path?: string;                   // Path for dynamic imports
+  file?: string;                   // ✨ Direct file path (takes precedence over path/target)
+  args?: JsonValue[];              // Arguments for class constructors
+  dependencies?: ServiceConfig[];  // Nested dependencies
+};
+```
+
+**Note**: `RegistrationConfig` and `DependencyConfig` are still available for backward compatibility but are deprecated. Use `ServiceConfig` for new code.
 
 ### Registration Types
 

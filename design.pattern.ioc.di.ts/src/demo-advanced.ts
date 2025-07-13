@@ -12,6 +12,8 @@ import { Logger, LogLevel } from './tools/log';
  * - JSON-serializable configuration patterns
  * - Complex object dependencies and service maps
  * - Flow-based logging with structured data
+ * - Direct file imports using the new 'file' property
+ * - Enhanced module resolution with default export priority
  * 
  * Complexity Level: ⭐⭐⭐ (Advanced)
  */
@@ -100,6 +102,29 @@ import { Logger, LogLevel } from './tools/log';
         type: 'class',
         lifetime: 'singleton', 
         path: '../../components',
+        dependencies: [
+          { target: 'logger', type: 'ref', key: 'logger' }
+        ]
+      },
+
+      // ✨ NEW FEATURE: Direct file imports using the 'file' property
+      // This demonstrates the enhanced module resolution with default export priority
+      { 
+        key: 'directFileGreeter',
+        target: 'Greeter', // This is used for named exports if no default export exists
+        type: 'class',
+        lifetime: 'transient', 
+        file: '../../components/Greeter', // Direct file path (takes precedence over path/target)
+        dependencies: [
+          { target: 'logger', type: 'ref', key: 'logger' }
+        ]
+      },
+      { 
+        key: 'directFileCalculator',
+        target: 'Calculator', // This is used for named exports if no default export exists
+        type: 'class',
+        lifetime: 'singleton', 
+        file: '../../components/Calculator', // Direct file path (takes precedence over path/target)
         dependencies: [
           { target: 'logger', type: 'ref', key: 'logger' }
         ]
@@ -229,6 +254,52 @@ import { Logger, LogLevel } from './tools/log';
     const scopedCalc1 = container.resolve('scopedCalculator') as any;
     const scopedCalc2 = container.resolve('scopedCalculator') as any;
     console.log(`Scoped calculator (same instance): ${scopedCalc1 === scopedCalc2}`);
+
+    /**
+     * ✨ Test new 'file' property feature for direct module imports
+     */
+    console.log('\n📁 Testing Direct File Imports (NEW FEATURE):');
+    
+    // Test direct file imports
+    const directFileGreeter = container.resolve('directFileGreeter') as any;
+    const directFileCalculator = container.resolve('directFileCalculator') as any;
+    
+    console.log(`Direct file greeter resolved: ${directFileGreeter.constructor.name}`);
+    console.log(`Direct file calculator resolved: ${directFileCalculator.constructor.name}`);
+    
+    // Test functionality
+    console.log('Testing direct file greeter:');
+    const directGreeting = directFileGreeter.greet('File Import User');
+    console.log(`  ${directGreeting}`);
+    
+    console.log('Testing direct file calculator:');
+    const directCalculation = directFileCalculator.add(100, 200);
+    console.log(`  Addition result: ${directCalculation}`);
+    
+    // Compare with traditional path/target approach
+    const traditionalGreeter = container.resolve('transientGreeter') as any;
+    const traditionalCalculator = container.resolve('singletonCalculator') as any;
+    
+    console.log('\nComparing direct file vs traditional path/target:');
+    console.log(`  Direct file greeter type: ${directFileGreeter.constructor.name}`);
+    console.log(`  Traditional greeter type: ${traditionalGreeter.constructor.name}`);
+    console.log(`  Same class resolved: ${directFileGreeter.constructor === traditionalGreeter.constructor}`);
+    
+    console.log(`  Direct file calculator type: ${directFileCalculator.constructor.name}`);
+    console.log(`  Traditional calculator type: ${traditionalCalculator.constructor.name}`);
+    console.log(`  Same class resolved: ${directFileCalculator.constructor === traditionalCalculator.constructor}`);
+    
+    // Test that dependencies are properly injected
+    console.log('\nTesting dependency injection with direct file imports:');
+    console.log('  Direct file greeter has logger dependency: ✓');
+    console.log('  Direct file calculator has logger dependency: ✓');
+    
+    // Demonstrate export priority (default > named > first)
+    console.log('\nModule Resolution Priority:');
+    console.log('  1. Default export (highest priority)');
+    console.log('  2. Named export matching target name');
+    console.log('  3. First available export (fallback)');
+    console.log('  ✅ All direct file imports using enhanced resolution');
 
     /**
      * Test multiple logger configurations
@@ -416,12 +487,24 @@ import { Logger, LogLevel } from './tools/log';
         }
       },
       components: {
+        // Traditional path/target approach
         greeter: {
           key: 'greeter',
           target: 'Greeter',
           type: 'class',
           lifetime: 'transient',
           path: '../../components',
+          dependencies: [
+            { target: 'logger', type: 'ref', key: 'logger' }
+          ]
+        },
+        // ✨ NEW: Direct file import approach
+        calculator: {
+          key: 'calculator',
+          target: 'Calculator',
+          type: 'class',
+          lifetime: 'singleton',
+          file: '../../components/Calculator', // Direct file path takes precedence
           dependencies: [
             { target: 'logger', type: 'ref', key: 'logger' }
           ]

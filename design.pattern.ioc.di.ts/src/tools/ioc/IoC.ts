@@ -1,5 +1,5 @@
 import { createContainer, asClass, asValue, asFunction, aliasTo, AwilixContainer } from 'awilix';
-import { RegistrationConfig, IIoC, JsonRegistrationConfig, ClassConstructor, JsonValue, DependencyConfig } from './types';
+import { ServiceConfig, IIoC, JsonRegistrationConfig, ClassConstructor, JsonValue } from './types';
 
 /**
  * Optimized IoC container wrapper over Awilix.
@@ -13,7 +13,7 @@ import { RegistrationConfig, IIoC, JsonRegistrationConfig, ClassConstructor, Jso
  */
 export class IoC implements IIoC {
   private readonly container: AwilixContainer;
-  private readonly registeredConfigs = new Map<string, RegistrationConfig>();
+  private readonly registeredConfigs = new Map<string, ServiceConfig>();
 
   // Performance optimization: Cache commonly used patterns
   private readonly propertyNameCache = new Map<string, string>();
@@ -42,7 +42,7 @@ export class IoC implements IIoC {
    * First pass: dependencies without references
    * Second pass: dependencies with references (to ensure proper resolution order)
    */
-  async register(configs: RegistrationConfig[]): Promise<void> {
+  async register(configs: ServiceConfig[]): Promise<void> {
     const [withoutDeps, withDeps] = this.partitionConfigs(configs);
     
     // Register dependencies without references first
@@ -65,9 +65,9 @@ export class IoC implements IIoC {
   /**
    * Partitions configurations into those with and without dependencies for optimal registration order.
    */
-  private partitionConfigs(configs: RegistrationConfig[]): [RegistrationConfig[], RegistrationConfig[]] {
-    const withoutDeps: RegistrationConfig[] = [];
-    const withDeps: RegistrationConfig[] = [];
+  private partitionConfigs(configs: ServiceConfig[]): [ServiceConfig[], ServiceConfig[]] {
+    const withoutDeps: ServiceConfig[] = [];
+    const withDeps: ServiceConfig[] = [];
     
     for (const config of configs) {
       if (!config.dependencies?.length) {
@@ -83,7 +83,7 @@ export class IoC implements IIoC {
   /**
    * Registers a batch of configurations.
    */
-  private async registerBatch(configs: RegistrationConfig[]): Promise<void> {
+  private async registerBatch(configs: ServiceConfig[]): Promise<void> {
     for (const config of configs) {
       await this.registerSingle(config);
     }
@@ -92,8 +92,8 @@ export class IoC implements IIoC {
   /**
    * Registers a single dependency with optimized type handling.
    */
-  private async registerSingle(config: RegistrationConfig): Promise<void> {
-    const { key, target, type = 'class', lifetime = 'transient', path, args, dependencies } = config;
+  private async registerSingle(config: ServiceConfig): Promise<void> {
+    const { key, target, type = 'class', lifetime = 'transient', path, args, dependencies, file } = config;
 
     // Handle reference case with early return pattern
     if (type === 'ref') {
@@ -110,13 +110,13 @@ export class IoC implements IIoC {
     this.registeredConfigs.set(dependencyKey, config);
 
     // Use strategy pattern for registration types
-    await this.executeRegistrationStrategy(dependencyKey, target, type, lifetime, path, args, dependencies);
+    await this.executeRegistrationStrategy(dependencyKey, target, type, lifetime, path, args, dependencies, file);
   }
 
   /**
    * Handles reference type registrations.
    */
-  private async handleReference(config: RegistrationConfig): Promise<void> {
+  private async handleReference(config: ServiceConfig): Promise<void> {
     const existingConfig = this.registeredConfigs.get(config.target as string);
     if (!existingConfig) {
       throw new Error(IoC.ERRORS.REFERENCE_NOT_FOUND(config.target as string));
@@ -142,7 +142,8 @@ export class IoC implements IIoC {
     lifetime: 'singleton' | 'transient' | 'scoped',
     path?: string,
     args?: JsonValue[],
-    dependencies?: DependencyConfig[]
+    dependencies?: ServiceConfig[],
+    file?: string
   ): Promise<void> {
     switch (type) {
       case 'value':
@@ -158,7 +159,7 @@ export class IoC implements IIoC {
         break;
         
       case 'class':
-        await this.registerClass(key, target, lifetime, path, args, dependencies);
+        await this.registerClass(key, target, lifetime, path, args, dependencies, file);
         break;
         
       default:
@@ -185,9 +186,10 @@ export class IoC implements IIoC {
     lifetime: 'singleton' | 'transient' | 'scoped',
     path?: string,
     args?: JsonValue[],
-    dependencies?: DependencyConfig[]
+    dependencies?: ServiceConfig[],
+    file?: string
   ): Promise<void> {
-    const classConstructor = await this.resolveClassConstructor(key, target, path);
+    const classConstructor = await this.resolveClassConstructor(key, target, path, file);
     
     // Use simple class registration for cases without special configuration
     if (!args?.length && !dependencies?.length) {
@@ -201,24 +203,81 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Resolves class constructor from target (string or function).
+   * Resolves class constructor from target (string or function) with enhanced module resolution.
+   * 
+   * Features:
+   * - Prioritizes export default over named exports
+   * - Supports direct file paths via `file` parameter
+   * - Optimized module resolution with performance improvements
+   * - Flexible fallback mechanism for different export patterns
+   * 
+   * @param key - The dependency key for error reporting
+   * @param target - The target class (function or string)
+   * @param path - Base path for module resolution (used with target)
+   * @param file - Direct file path (takes precedence over path/target)
+   * @returns Promise resolving to the class constructor
    */
-  private async resolveClassConstructor(key: string, target: any, path?: string): Promise<ClassConstructor> {
+  private async resolveClassConstructor(key: string, target: any, path?: string, file?: string): Promise<ClassConstructor> {
+    // Fast path: if target is already a function, return it directly
     if (typeof target === 'function') {
       return target as ClassConstructor;
     }
     
     if (typeof target === 'string') {
-      if (!path) {
+      // Determine module path with priority: file > path/target
+      const modulePath = file ?? (path ? `${path}/${target}` : null);
+      
+      if (!modulePath) {
         throw new Error(IoC.ERRORS.MISSING_PATH(target));
       }
       
-      const modulePath = `${path}/${target}`;
-      const importedModule = await import(modulePath);
-      return Object.values(importedModule)[0] as ClassConstructor;
+      try {
+        // Import module with optimized resolution
+        const importedModule = await import(modulePath);
+        
+        // Performance optimization: Use fastest resolution strategy
+        return this.resolveConstructorFromModule(importedModule, target, key);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to import module '${modulePath}' for dependency '${key}': ${errorMessage}`);
+      }
     }
     
     throw new Error(IoC.ERRORS.INVALID_TARGET(key, 'class'));
+  }
+  
+  /**
+   * Resolves constructor from imported module with prioritized export resolution.
+   * 
+   * Resolution priority:
+   * 1. Export default (highest priority)
+   * 2. Named export matching target name
+   * 3. First available export (fallback)
+   * 
+   * @param importedModule - The imported module object
+   * @param target - The target name for named export lookup
+   * @param key - The dependency key for error reporting
+   * @returns The resolved class constructor
+   */
+  private resolveConstructorFromModule(importedModule: any, target: string, key: string): ClassConstructor {
+    // Priority 1: Export default (most common and performant)
+    if (importedModule.default) {
+      return importedModule.default as ClassConstructor;
+    }
+    
+    // Priority 2: Named export matching target name
+    if (importedModule[target]) {
+      return importedModule[target] as ClassConstructor;
+    }
+    
+    // Priority 3: First available export (fallback)
+    const exportedValues = Object.values(importedModule);
+    if (exportedValues.length > 0) {
+      return exportedValues[0] as ClassConstructor;
+    }
+    
+    // No valid exports found
+    throw new Error(`No valid constructor found in module for dependency '${key}'. Expected default export or named export '${target}'.`);
   }
 
   /**
@@ -228,7 +287,7 @@ export class IoC implements IIoC {
   private createFactoryFunction(
     classConstructor: ClassConstructor,
     args?: JsonValue[],
-    dependencies?: DependencyConfig[]
+    dependencies?: ServiceConfig[]
   ): (cradle: any) => any {
     return (cradle: any) => {
       // Handle static arguments
@@ -258,7 +317,7 @@ export class IoC implements IIoC {
   /**
    * Resolves dependency object from cradle using cached property names for performance.
    */
-  private resolveDependencyObject(cradle: any, dependencies: DependencyConfig[]): Record<string, any> {
+  private resolveDependencyObject(cradle: any, dependencies: ServiceConfig[]): Record<string, any> {
     const dependencyObject: Record<string, any> = {};
     
     for (const dep of dependencies) {
@@ -272,7 +331,7 @@ export class IoC implements IIoC {
   /**
    * Resolves property and target names for a dependency with caching.
    */
-  private resolveDependencyNames(dep: DependencyConfig): { propertyName: string; targetKey: string } {
+  private resolveDependencyNames(dep: ServiceConfig): { propertyName: string; targetKey: string } {
     if (dep.type === 'ref') {
       const targetKey = dep.target as string;
       const propertyName = dep.key ?? this.getCachedPropertyName(targetKey);
@@ -318,14 +377,15 @@ export class IoC implements IIoC {
   // === JSON CONFIGURATION METHODS ===
 
   /**
-   * Converts JSON configuration to regular registration configuration.
+   * Converts JSON configuration to regular service configuration.
    */
-  private convertJsonConfig(config: JsonRegistrationConfig, classRegistry: Record<string, ClassConstructor>): RegistrationConfig {
-    const convertedConfig: RegistrationConfig = {
+  private convertJsonConfig(config: JsonRegistrationConfig, classRegistry: Record<string, ClassConstructor>): ServiceConfig {
+    const convertedConfig: ServiceConfig = {
       key: config.key,
       type: config.type,
       lifetime: config.lifetime,
       path: config.path,
+      file: config.file,
       args: config.args,
       target: config.type === 'class' && classRegistry[config.target] 
         ? classRegistry[config.target] 
