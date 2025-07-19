@@ -1,64 +1,65 @@
 import { Logger } from '../tools/log';
+import { IIoC } from '../tools/ioc';
 
 /**
- * Calculator class for demonstrating more complex dependency injection scenarios.
+ * Calculator class demonstrating enhanced dependency injection with object parameters.
  */
 export class Calculator {
-  private logger: Logger;
+  private name?: string;
+  private logger?: Logger;
+  private assistant?: IIoC;
+  private options?: { level: string; category: string; };
 
-  constructor({ logger }: { logger: Logger }) {
-    this.logger = logger;
+  /**
+   * Constructor receiving args first, then dependencies object as final parameter.
+   * @param param1 - Configuration options with level and category
+   * @param param2 - Name identifier for the calculator instance
+   * @param param3 - Dependencies object containing logger and assistant
+   */
+  constructor(param1: { level: string; category: string; }, param2: string, param3: {logger: Logger, assistant: IIoC}) {
+    this.logger = param3.logger;
+    this.assistant = param3.assistant;
+    this.options = param1;
+    this.name = param2;
   }
 
   /**
    * Adds two numbers and logs the operation.
-   * @param a - First number
-   * @param b - Second number
-   * @returns The sum of a and b
    */
   add(a: number, b: number): number {
     const result = a + b;
-    this.logger.log(`Addition: ${a} + ${b} = ${result}`);
+    this.logger?.info({ message: `Addition: ${a} + ${b} = ${result}`, data: { src: 'Calculator' } });
     return result;
   }
 
   /**
    * Subtracts two numbers and logs the operation.
-   * @param a - First number
-   * @param b - Second number
-   * @returns The difference of a and b
    */
   subtract(a: number, b: number): number {
     const result = a - b;
-    this.logger.log(`Subtraction: ${a} - ${b} = ${result}`);
+    this.logger?.info({ message: `Subtraction: ${a} - ${b} = ${result}`, data: { src: 'Calculator' } });
     return result;
   }
 
   /**
    * Multiplies two numbers and logs the operation.
-   * @param a - First number
-   * @param b - Second number
-   * @returns The product of a and b
    */
   multiply(a: number, b: number): number {
     const result = a * b;
-    this.logger.log(`Multiplication: ${a} * ${b} = ${result}`);
+    this.logger?.info({ message: `Multiplication: ${a} * ${b} = ${result}`, data: { src: 'Calculator' } });
     return result;
   }
 
   /**
    * Divides two numbers and logs the operation.
-   * @param a - First number
-   * @param b - Second number
-   * @returns The quotient of a and b
    */
   divide(a: number, b: number): number {
     if (b === 0) {
-      this.logger.error('Division by zero attempted!');
+      this.logger?.error({ message: 'Division by zero attempted!', data: { src: 'Calculator' } });
       throw new Error('Cannot divide by zero');
     }
     const result = a / b;
-    this.logger.log(`Division: ${a} / ${b} = ${result}`);
+    this.logger?.info({ message: `Division: ${a} / ${b} = ${result}`, data: { src: 'Calculator' } });
     return result;
   }
 } 

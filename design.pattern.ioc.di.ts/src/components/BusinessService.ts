@@ -1,3 +1,5 @@
+import { IIoC } from "../tools";
+
 /**
  * BusinessService - Advanced IoC Demonstration Component
  * 
@@ -17,6 +19,7 @@ export class BusinessService {
   private calculator: any;
   private greeter: any;
   private logger: any;
+  private assistant: IIoC;
 
   // Performance metrics for monitoring
   private operationCount: number = 0;
@@ -28,19 +31,21 @@ export class BusinessService {
    * 
    * @param dependencies - Object containing all required dependencies
    */
-  constructor({ calculator, greeter, logger }: { 
-    calculator: any; 
-    greeter: any; 
-    logger: any; 
+  constructor(dependencies: {
+    calculator: any;
+    greeter: any;
+    logger: any;
+    assistant: IIoC;
   }) {
-    this.calculator = calculator;
-    this.greeter = greeter;
-    this.logger = logger;
-    
+    this.calculator = dependencies.calculator;
+    this.greeter = dependencies.greeter;
+    this.logger = dependencies.logger;
+    this.assistant = dependencies.assistant;
+
     // Initialize service with performance tracking
-    this.logger.info({
+    this.logger?.info({
       message: 'BusinessService initialized successfully',
-      data: { 
+      data: {
         timestamp: Date.now(),
         dependencies: ['calculator', 'greeter', 'logger'],
         lifecycle: 'transient'
@@ -67,28 +72,28 @@ export class BusinessService {
     processingTime: number;
   } {
     const startTime = performance.now();
-    
+
     // Greet the customer using injected Greeter service
     const greeting = this.greeter.greet(customerName);
-    
+
     // Calculate order totals using injected Calculator service
     let subtotal = 0;
     let itemCount = 0;
-    
+
     for (const item of items) {
       const itemTotal = this.calculator.multiply(item.quantity, item.price);
       subtotal = this.calculator.add(subtotal, itemTotal);
       itemCount = this.calculator.add(itemCount, item.quantity);
     }
-    
+
     // Calculate tax (8.5% tax rate)
     const tax = this.calculator.multiply(subtotal, 0.085);
     const total = this.calculator.add(subtotal, tax);
-    
+
     const processingTime = performance.now() - startTime;
     this.operationCount++;
     this.lastOperationTime = processingTime;
-    
+
     const orderSummary = {
       customer: customerName,
       greeting,
@@ -99,7 +104,7 @@ export class BusinessService {
       summary: `Order processed for ${customerName}: ${itemCount} items, $${total.toFixed(2)} total`,
       processingTime
     };
-    
+
     // Log comprehensive operation details
     this.logger.info({
       message: 'Customer order processed successfully',
@@ -113,7 +118,7 @@ export class BusinessService {
         operationNumber: this.operationCount
       }
     });
-    
+
     return orderSummary;
   }
 
@@ -129,11 +134,11 @@ export class BusinessService {
     efficiency: string;
     recommendations: string[];
   } {
-    const efficiency = this.operationCount > 0 ? 
+    const efficiency = this.operationCount > 0 ?
       this.calculator.divide(1000, this.lastOperationTime) : 0;
-    
+
     const recommendations: string[] = [];
-    
+
     if (efficiency < 10) {
       recommendations.push('Consider optimizing database queries');
       recommendations.push('Implement caching for frequently accessed data');
@@ -142,19 +147,19 @@ export class BusinessService {
     } else {
       recommendations.push('Excellent performance, no optimizations needed');
     }
-    
+
     const report = {
       totalOperations: this.operationCount,
       averageOperationTime: this.lastOperationTime,
       efficiency: `${efficiency.toFixed(2)} operations/second`,
       recommendations
     };
-    
+
     this.logger.info({
       message: 'Performance report generated',
       data: report
     });
-    
+
     return report;
   }
 
@@ -175,7 +180,7 @@ export class BusinessService {
     responseTime: number;
   } {
     const startTime = performance.now();
-    
+
     // Determine sentiment based on rating (using calculator for thresholds)
     let sentiment: string;
     if (rating >= 4) {
@@ -185,13 +190,13 @@ export class BusinessService {
     } else {
       sentiment = 'negative';
     }
-    
+
     // Calculate priority score using complex business logic
     const feedbackLength = feedback.length;
     const lengthWeight = this.calculator.divide(feedbackLength, 100);
     const ratingWeight = this.calculator.multiply(rating, 0.3);
     const priorityScore = this.calculator.add(lengthWeight, ratingWeight);
-    
+
     let priority: string;
     if (priorityScore >= 2) {
       priority = 'high';
@@ -200,12 +205,12 @@ export class BusinessService {
     } else {
       priority = 'low';
     }
-    
+
     // Generate farewell message
     const farewell = this.greeter.farewell(customerName);
-    
+
     const responseTime = performance.now() - startTime;
-    
+
     const feedbackSummary = {
       customer: customerName,
       farewell,
@@ -213,7 +218,7 @@ export class BusinessService {
       priority,
       responseTime
     };
-    
+
     this.logger.info({
       message: 'Customer feedback processed',
       data: {
@@ -226,7 +231,7 @@ export class BusinessService {
         responseTime: `${responseTime.toFixed(2)}ms`
       }
     });
-    
+
     return feedbackSummary;
   }
 
@@ -240,36 +245,39 @@ export class BusinessService {
    * @param rating - Customer rating
    * @returns Complete workflow result
    */
-  executeBusinessWorkflow(
+  async executeBusinessWorkflow(
     customerName: string,
     orderItems: { name: string; quantity: number; price: number }[],
     feedback: string,
     rating: number
-  ): {
+  ): Promise<{
     welcome: string;
     order: any;
     feedback: any;
     performance: any;
     conclusion: string;
-  } {
+  }> {
+    const srv = await this.assistant?.resolve('Greeter') as any;
+    this.logger?.info({ message: `✅ Assistant Injection: ${srv.greet('! - !')}`, data: { src: 'Calculator', loaded: !!srv } });
+
     const startTime = performance.now();
-    
+
     // Welcome customer
-    const welcome = this.greeter.welcome(customerName);
-    
+    const welcome = this.greeter?.welcome(customerName);
+
     // Process order
     const order = this.processCustomerOrder(customerName, orderItems);
-    
+
     // Handle feedback
     const feedbackResult = this.handleCustomerFeedback(customerName, feedback, rating);
-    
+
     // Generate performance report
     const performanceReport = this.generatePerformanceReport();
-    
+
     const workflowTime = performance.now() - startTime;
-    
+
     const conclusion = `Complete business workflow executed for ${customerName} in ${workflowTime.toFixed(2)}ms`;
-    
+
     this.logger.info({
       message: 'Business workflow completed successfully',
       data: {
@@ -280,7 +288,7 @@ export class BusinessService {
         efficiency: 'optimal'
       }
     });
-    
+
     return {
       welcome,
       order,

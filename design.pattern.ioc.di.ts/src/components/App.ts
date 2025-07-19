@@ -9,13 +9,13 @@
 export class App {
     private greeter: any;
 
-    constructor({ greeter }: { greeter: any }) {
-        this.greeter = greeter;
+    constructor(dependencies: { greeter: any }) {
+        this.greeter = dependencies.greeter;
     }
 
     run(): void {
         // Call the greet method on the injected greeter service
-        const greeting = this.greeter.greet('Awilix');
+        const greeting = this.greeter?.greet('✅ Native Awilix Dependency management');
         console.log(greeting);
     }
 } 

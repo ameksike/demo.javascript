@@ -1,3 +1,4 @@
+import { IIoC } from '../tools';
 import { Logger } from '../tools/log';
 
 /**
@@ -6,8 +7,8 @@ import { Logger } from '../tools/log';
 export class Greeter {
   private logger: Logger;
 
-  constructor({ logger }: { logger: Logger }) {
-    this.logger = logger;
+  constructor(param1: { level: string; category: string; }, param2: string, dependencies: { logger: Logger, assistant: IIoC }) {
+    this.logger = dependencies.logger;
   }
 
   /**
@@ -17,7 +18,7 @@ export class Greeter {
    */
   greet(name: string): string {
     this.logger.log(`Greeting: ${name}`);
-    return `Hello, ${name}!`;
+    return `${name} - Hello!`;
   }
 
   /**
