@@ -1,4 +1,4 @@
-import { IoC } from './tools/ioc';
+import { IoC, IDependency } from './tools/ioc';
 import { Logger, LogLevel } from './tools/log';
 
 /**
@@ -25,10 +25,9 @@ import { Logger, LogLevel } from './tools/log';
      */
     console.log('📦 Setting up IoC Container with Auto-Registration:');
 
-    await manager.register([
+    const dependencies: IDependency[] = [
       // Logger configuration
       {
-        key: 'logger',
         target: Logger,
         type: 'class',
         lifetime: 'singleton',
@@ -39,11 +38,15 @@ import { Logger, LogLevel } from './tools/log';
         type: 'auto',
         path: '../../components',
         lifetime: 'singleton',
+        args: [{ level: LogLevel.DEBUG, category: 'MAIN' }, "test"],
         dependencies: [
-          { target: 'logger', type: 'ref', key: 'logger' }
+          { target: 'Logger', type: 'ref', key: 'logger' },
+          { target: 'IoC', type: 'ref', key: 'assistant' }
         ]
       }
-    ]);
+    ];
+
+    await manager.register(dependencies);
 
     console.log('✅ IoC Container configured with auto-registration\n');
 
@@ -95,7 +98,8 @@ import { Logger, LogLevel } from './tools/log';
         dependencies: [
           { target: 'Calculator', type: 'ref', key: 'calculator' },
           { target: 'Greeter', type: 'ref', key: 'greeter' },
-          { target: 'logger', type: 'ref', key: 'logger' }
+          { target: 'Logger', type: 'ref', key: 'logger' },
+          { target: 'IoC', type: 'ref', key: 'assistant' }
         ]
       }
     ]);
@@ -103,7 +107,7 @@ import { Logger, LogLevel } from './tools/log';
     const businessService = await manager.resolve('businessService') as any;
 
     // Execute comprehensive business workflow
-    const workflowResult = businessService.executeBusinessWorkflow(
+    const workflowResult = await businessService.executeBusinessWorkflow(
       'Alice Johnson',
       [
         { name: 'Laptop', quantity: 1, price: 1200 },
@@ -129,21 +133,29 @@ import { Logger, LogLevel } from './tools/log';
       { key: 'version', target: '2.0.0', type: 'value' },
       { key: 'environment', target: 'production', type: 'value' },
       {
-        key: 'timestampFactory',
+        key: 'timestampFactoryFn',
         target: () => new Date().toISOString(),
-        type: 'value'
+        type: 'function'
+      },
+      {
+        key: 'timestampFactoryMethod',
+        target: () => new Date().toISOString(),
+        type: 'action'
       }
     ]);
 
     const appName = await manager.resolve<string>('appName');
     const version = await manager.resolve<string>('version');
     const environment = await manager.resolve<string>('environment');
-    const timestampFactory = await manager.resolve<(() => string)>('timestampFactory');
+    const timestampFactoryFn = await manager.resolve<(() => string)>('timestampFactoryFn');
+    const timestampFactoryRe = await manager.resolve<string>('timestampFactoryMethod');
 
     console.log('✅ Configuration resolved:');
     console.log(`  - App: ${appName} v${version}`);
     console.log(`  - Environment: ${environment}`);
-    console.log(`  - Timestamp: ${timestampFactory()}`);
+
+    console.log(`  - Timestamp action: ${timestampFactoryRe}`);
+    console.log(`  - Timestamp function: ${timestampFactoryFn()}`);
 
     /**
      * FEATURE 5: Performance and Lifecycle Demo
@@ -160,8 +172,6 @@ import { Logger, LogLevel } from './tools/log';
     console.log(`  - Same Calculator instance: ${calculator === calculator2}`);
     console.log(`  - Same Greeter alias instance: ${myalias3.greet('!A!') === greeter.greet('!A!') && myalias3.greet('!A!') === 'Hello, !A!!'}`);
 
-    
-
     // Test transient behavior
     const businessService1 = await manager.resolve('businessService') as any;
     const businessService2 = await manager.resolve('businessService') as any;
@@ -173,10 +183,10 @@ import { Logger, LogLevel } from './tools/log';
      */
     console.log('\n🔍 Container Introspection:');
 
-    const registeredKeys = manager.getRegisteredKeys();
-    console.log(`✅ Total registered services: ${registeredKeys.length}`);
-    console.log('✅ Registered services:');
-    registeredKeys.forEach(key => console.log(`  - ${key}`));
+    const registeredDependencies = manager.config;
+    console.log(`✅ Total registered dependencies: ${registeredDependencies.length}`);
+    console.log('✅ Registered dependencies:');
+    registeredDependencies.forEach(dep => console.log(`  - ${dep.key} (${dep.type})`));
 
     /**
      * Summary and Conclusion
