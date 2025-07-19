@@ -1,10 +1,8 @@
 import { IDependency, IIoC, IClassConstructor, IDependencyMap } from './types';
 import { createContainer, asClass, asValue, asFunction, aliasTo, AwilixContainer } from 'awilix';
 
-
 /**
- * Simplified IoC container with enhanced dependency injection capabilities.
- * Features auto-registration, recursive dependency resolution, and organized logging.
+ * IoC container with auto-registration and recursive dependency resolution.
  */
 export class IoC implements IIoC {
   private readonly container: AwilixContainer;
@@ -13,8 +11,7 @@ export class IoC implements IIoC {
   private readonly cache = new Map<string, IDependency>();
 
   /**
-   * Initializes IoC container with optional logger injection.
-   * Auto-registers itself as "assistant" for dependency injection reuse.
+   * Initializes container with optional logger and auto-registers itself.
    */
   constructor(logger?: Console) {
     this.container = createContainer();
@@ -33,8 +30,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Registers multiple dependencies by processing each through enroll method.
-   * Supports recursive dependency registration for nested configurations.
+   * Registers dependencies with recursive processing and auto-registration support.
    */
   async register(dependencies: IDependency[] | IDependencyMap): Promise<void> {
     dependencies = this.toList(dependencies);
@@ -49,8 +45,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Enrolls single dependency with automatic key determination and recursive processing.
-   * Handles nested dependencies by calling register recursively.
+   * Enrolls single dependency with key determination and recursive processing.
    */
   private async enroll(dependency: IDependency): Promise<void> {
     // Determine dependency key if not provided
@@ -77,7 +72,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Determines dependency key from target and type information.
+   * Determines dependency key from target and type.
    */
   protected getKey(target: any, type?: string): string {
     if (typeof target === 'string') return target;
@@ -87,14 +82,17 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Stores auto-registration configuration in cache with default regex.
+   * Stores auto-registration pattern with default regex.
    */
-  private storeAutoRegistration(dependency: IDependency): void {
+  protected storeAutoRegistration(dependency: IDependency): void {
     const regex = dependency.regex ?? '.*';
     this.cache.set(regex, dependency);
     this.logger.info({ src: 'IoC', message: `Auto-registration pattern stored: ${regex}` });
   }
 
+  /**
+   * Converts dependency map to array format.
+   */
   protected toList(dependencies: IDependency[] | IDependencyMap): IDependency[] {
     const dependencyArray = Array.isArray(dependencies)
       ? dependencies
@@ -103,7 +101,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Executes appropriate registration strategy based on dependency type.
+   * Executes registration strategy based on dependency type.
    */
   protected async executeRegistrationStrategy(dependency: IDependency): Promise<void> {
     const { key, target, type = 'class', lifetime = 'transient' } = dependency;
@@ -146,9 +144,9 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Registers class dependency with constructor arguments and dependency injection.
+   * Registers class with constructor arguments and dependency injection.
    */
-  private async registerClass(dependency: IDependency): Promise<void> {
+  protected async registerClass(dependency: IDependency): Promise<void> {
     const { key, target, lifetime = 'transient', args, dependencies, path, file } = dependency;
 
     // Resolve class constructor
@@ -189,7 +187,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Resolves class constructor from target, supporting dynamic imports.
+   * Resolves class constructor supporting dynamic imports.
    */
   protected async resolveClass(target: any, path?: string, file?: string, key?: string): Promise<IClassConstructor> {
     if (typeof target === 'function') {
@@ -215,7 +213,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Builds dependencies object for constructor injection from cradle.
+   * Builds dependencies object for constructor injection.
    */
   protected build(cradle: any, dependencies: IDependency[] | IDependencyMap): Record<string, any> {
     const dependenciesObject: Record<string, any> = {};
@@ -231,7 +229,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Resolves dependency with auto-registration support if not found.
+   * Resolves dependency with auto-registration support.
    */
   public async resolve<T = any>(key: string): Promise<T> {
     try {
@@ -254,7 +252,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Attempts auto-registration by matching key against stored patterns.
+   * Attempts auto-registration by matching key patterns.
    */
   protected async attemptAutoRegistration(key: string): Promise<boolean> {
     for (const [regex, pattern] of this.cache.entries()) {
@@ -272,7 +270,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Performs auto-registration by creating dependency configuration and enrolling it.
+   * Performs auto-registration by creating and enrolling dependency.
    */
   protected async performAutoRegistration(key: string, pattern: IDependency): Promise<void> {
     const modulePath = pattern.file ?? (pattern.path ? `${pattern.path}/${key}` : null);
@@ -296,7 +294,7 @@ export class IoC implements IIoC {
   }
 
   /**
-   * Unregisters dependencies from container by removing registrations and cached configurations.
+   * Unregisters dependencies by removing registrations and configurations.
    */
   public unregister(keys: string[]): void {
     for (const key of keys) {

@@ -1,48 +1,56 @@
 import { Lifetime } from 'awilix';
 
 /**
- * Represents a value that can be serialized to JSON format.
+ * JSON-serializable value types for dependency injection configurations.
  */
 export type IJSON = string | number | boolean | null | IJSON[] | { [key: string]: IJSON };
 
 /**
- * Class constructor interface with proper typing.
+ * Class constructor type with generic typing support.
  */
 export type IClassConstructor<T = {}> = new (...args: any[]) => T;
 
 /**
- * Function type for dependency injection purposes.
+ * Function type for dependency injection and factory methods.
  */
 export type IFunction<T = any> = (...args: any[]) => T;
 
+/**
+ * Dependency configuration map with string keys.
+ */
 export type IDependencyMap = { [key: string]: IDependency };
 
+/**
+ * Array of dependency configuration objects.
+ */
 export type IDependencyList = IDependency[];
 
+/**
+ * Available dependency registration type strategies.
+ */
 export type IDependencyType = 'class' | 'value' | 'function' | 'method' | 'action' | 'alias' | 'ref' | 'auto';
 
+/**
+ * Instance lifecycle management strategies for dependency caching.
+ */
 export type IDependencyLifetime = 'singleton' | 'transient' | 'scoped';
 
 /**
- * Unified dependency configuration interface for all registration scenarios.
- * Supports direct registration, auto-registration, and nested dependencies.
+ * Unified dependency configuration for all registration scenarios.
  */
 export interface IDependency {
   /**
-   * Registration key for the dependency in the container.
-   * If not provided, inferred from class name or target.
+   * Registration key for container identification.
    */
   key?: string;
 
   /**
-   * Target: class constructor, function, value, or reference key.
-   * Optional for auto-registration where target is discovered automatically.
+   * Target class, function, value, or reference.
    */
   target?: any;
 
   /**
-   * Regular expression pattern for auto-registration file matching.
-   * Defaults to '.*' if not specified.
+   * Regex pattern for auto-registration matching.
    */
   regex?: string;
 
@@ -52,50 +60,47 @@ export interface IDependency {
   type?: IDependencyType;
 
   /**
-   * Dependency registration type strategy.
+   * Alternative dependency registration type strategy.
    */
   as?: IDependencyType;
 
   /**
    * Instance lifecycle management strategy.
-   * Controls creation, caching, and reuse behavior.
    */
   lifetime?: IDependencyLifetime;
 
   /**
-   * Directory path for dynamic imports during auto-registration.
+   * Directory path for dynamic module imports.
    */
   path?: string;
 
   /**
    * Direct file path for module imports.
-   * Takes precedence over path/target combination.
    */
   file?: string;
 
   /**
-   * Static arguments passed to class constructor before dependencies.
+   * Constructor arguments passed before dependencies.
    */
   args?: IJSON[];
 
   /**
-   * Nested dependencies injected as object parameter.
-   * Supports both array and object format configurations.
+   * Nested dependencies for injection.
    */
   dependencies?: IDependencyList | IDependencyMap;
 }
 
 /**
- * IoC container interface defining dependency injection contract.
+ * IoC container interface for dependency injection operations.
  */
 export interface IIoC {
   /**
-   * Registers multiple dependencies from configuration array.
+   * Registers dependencies from array or map.
    */
   register(dependencies: IDependency[] | IDependencyMap): Promise<void>;
 
   /**
-   * Unregisters dependencies from container by keys.
+   * Unregisters dependencies by keys.
    */
   unregister(keys: string[]): void;
 
